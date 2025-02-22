@@ -31,6 +31,7 @@ ComfyUI_StringOps excels in handling prompts within workflows, especially in org
 
 ## Install
 ```cd ComfyUI/custom_nodes```
+
 ```git clone https://github.com/MeeeyoAI/ComfyUI_StringOps.git```
 
 Or download the zip file and extracted, copy the resulting folder to ```ComfyUI\custom_ Nodes Restart ComfyUI```
