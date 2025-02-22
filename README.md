@@ -16,7 +16,7 @@ Accurately extracts specified content from text using positional indexing and ke
 Achieves deep integration with Excel, supporting read and write operations on paged and tabular data, facilitating batch completion of complex tasks and significantly improving efficiency.
 
 
-## 🔸Partial Node Display
+## Partial Node Display
 **Text Processing Node**
 ![image](image/meyo01.png)   
 ![image](image/meyo02.png)   
@@ -29,13 +29,13 @@ Achieves deep integration with Excel, supporting read and write operations on pa
 
 ComfyUI_StringOps excels in handling prompts within workflows, especially in organizing and optimizing them, thereby significantly enhancing efficiency and accuracy.
 
-## 🔸Install
+## Install
 ```cd ComfyUI/custom_nodes```
 ```git clone https://github.com/MeeeyoAI/ComfyUI_StringOps.git```
 
 Or download the zip file and extracted, copy the resulting folder to ```ComfyUI\custom_ Nodes Restart ComfyUI```
 
-## 🔸About me
+## About me
 ✅ `bilibili:` https://space.bilibili.com/3546690300676691
 
 ✅ `Website:` http://www.meeeyo.com
