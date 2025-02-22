@@ -1,0 +1,4 @@
+#secrets
+requests>=2.25.1,<3.0.0
+ntplib
+openpyxl
