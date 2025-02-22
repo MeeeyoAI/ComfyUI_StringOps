@@ -10,6 +10,6 @@ Or download the zip file and extracted, copy the resulting folder to ComfyUI\cus
 -----
 
 ## About me
-- [bilibili]:https://space.bilibili.com/3546690300676691
-- [博主主页]:http://www.meeeyo.com
-- [知识星球]:https://t.zsxq.com/ufSS2
+[bilibili]:https://space.bilibili.com/3546690300676691
+[博主主页]:http://www.meeeyo.com
+[知识星球]:https://t.zsxq.com/ufSS2
