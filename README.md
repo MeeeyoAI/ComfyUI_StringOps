@@ -35,7 +35,7 @@ ComfyUI_StringOps excels in handling prompts within workflows, especially in org
 
 Or download the zip file and extracted, copy the resulting folder to ```ComfyUI\custom_ Nodes Restart ComfyUI```
 
-## About me
+## More Info
 ✅ `bilibili:` https://space.bilibili.com/3546690300676691
 
 ✅ `Website:` http://www.meeeyo.com
