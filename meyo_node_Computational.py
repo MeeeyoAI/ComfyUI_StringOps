@@ -2,8 +2,6 @@ import math
 import random
 
 
-
-
 #======宽度高度调整
 class StandardSize:
     def __init__(self):
