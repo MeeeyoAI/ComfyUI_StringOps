@@ -1,6 +1,7 @@
 from .meyo_node_Computational import StandardSize, CompareInt, FloatToInteger, GenerateNumbers, GetRandomIntegerInRange
 from .meyo_node_String import AddPrefixSuffix, ExtractSubstring, ExtractSubstringByIndices, SplitStringByDelimiter, ProcessString, ExtractBeforeAfter, ReplaceNthOccurrence, BatchReplaceStrings, ReplaceMultiple, RandomLineFromText, CheckSubstringPresence, AddPrefixSuffixToLines, ExtractAndCombineLines, FilterLinesBySubstrings, FilterLinesByWordCount, SplitAndExtractText, CountOccurrences, ExtractLinesByIndex, ExtractSpecificLines, RemoveContentBetweenChars, ShuffleTextLines, ConditionalTextOutput, TextConditionCheck, TextConcatenation, ExtractSpecificData, FindFirstLineContent
 from .meyo_node_File import FileListAndSuffix, ReadExcelData, WriteExcelData, FindExcelData, ReadExcelRowOrColumnDiff
+from .meyo_node_Functional import GetCurrentTime, SelectionParameter
 
 
 NODE_CLASS_MAPPINGS = {
@@ -46,6 +47,10 @@ NODE_CLASS_MAPPINGS = {
     "WriteExcelData": WriteExcelData,
     "FindExcelData": FindExcelData,
     "ReadExcelRowOrColumnDiff": ReadExcelRowOrColumnDiff,
+
+    #功能型节点：meyo_node_Functional
+    "GetCurrentTime": GetCurrentTime,
+    "SelectionParameter": SelectionParameter,
 
 }
 
@@ -93,5 +98,11 @@ NODE_DISPLAY_NAME_MAPPINGS = {
    "WriteExcelData": "写入表格数据(meeeyo.com)",
    "FindExcelData": "查找表格数据(meeeyo.com)",
    "ReadExcelRowOrColumnDiff": "读取表格数量差(meeeyo.com)",
-
+   
+    #功能型节点：meyo_node_Functional
+   "GetCurrentTime": "当前时间",
+   "SelectionParameter": "选择参数",
+  
 }
+
+
