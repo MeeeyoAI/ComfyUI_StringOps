@@ -20,7 +20,7 @@ class StandardSize:
 
     RETURN_TYPES = ("INT", "INT")
     FUNCTION = "resize_image"
-    CATEGORY = "Meyo/Image"
+    CATEGORY = "Meeeyo/Image"
 
     def resize_image(self, width, height, size_option):
         # 根据选择的选项调整尺寸像尺寸
