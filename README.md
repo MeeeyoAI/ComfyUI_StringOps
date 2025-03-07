@@ -34,7 +34,7 @@ ComfyUI_StringOps excels in handling prompts within workflows, especially in org
 
 ```git clone https://github.com/MeeeyoAI/ComfyUI_StringOps.git```
 
-Or download the zip file and extracted, copy the resulting folder to ```ComfyUI\custom_ Nodes Restart ComfyUI```
+Or download the zip file and extracted, copy the resulting folder to ```ComfyUI\custom_nodes``` Restart ComfyUI.
 
 ## More Info
 ✅ `bilibili:` https://space.bilibili.com/3546690300676691
