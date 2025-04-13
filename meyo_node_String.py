@@ -19,7 +19,7 @@ class SingleTextInput:
 
     RETURN_TYPES = ("STRING",)
     FUNCTION = "process_input"
-    CATEGORY = "Meeeyo/Text"
+    CATEGORY = "Meeeyo/String"
     OUTPUT_NODE = False
 
     def process_input(self, text):
