@@ -7,21 +7,19 @@ import torch
 import node_helpers
 import numpy as np
 from PIL import Image, ImageOps, ImageSequence
-
+from pathlib import Path
 
 #======加载重置图像
 class LoadAndAdjustImage:
-    _color_channels = ["alpha", "red", "green", "blue"]
-    
     @classmethod
     def INPUT_TYPES(s):
         input_dir = folder_paths.get_input_directory()
-        files = [f.name for f in pathlib.Path(input_dir).iterdir() if f.is_file()]
+        files = [f.name for f in Path(input_dir).iterdir() if f.is_file()]
         return {
             "required": {
                 "image": (sorted(files), {"image_upload": True}),
                 "max_dimension": ("INT", {"default": 1024, "min": 0, "max": 4096, "step": 8}),
-                "size_option": (["Custom", "Small", "Medium", "Large"], {"default": "Custom"}),
+                "size_option": (["Custom", "Small", "Medium", "Large"], {"default": "Custom"})
             }
         }
 
@@ -31,106 +29,78 @@ class LoadAndAdjustImage:
     CATEGORY = "Meeeyo/File"
 
     def load_image(self, image, max_dimension, size_option):
-        from PIL import Image, ImageOps, ImageSequence
-        import numpy as np
-        import torch
         image_path = folder_paths.get_annotated_filepath(image)
-        img = node_helpers.pillow(Image.open, image_path)
-
+        img = Image.open(image_path)
         W, H = img.size
+        aspect_ratio = W / H
+
+        def get_target_size():
+            if size_option == "Custom":
+                ratio = min(max_dimension / W, max_dimension / H)
+                return round(W * ratio), round(H * ratio)
+            
+            size_options = {
+                "Small": (
+                    (768, 512) if aspect_ratio >= 1.23 else
+                    (512, 768) if aspect_ratio <= 0.82 else
+                    (768, 768)
+                ),
+                "Medium": (
+                    (1216, 832) if aspect_ratio >= 1.23 else
+                    (832, 1216) if aspect_ratio <= 0.82 else
+                    (1216, 1216)
+                ),
+                "Large": (
+                    (1600, 1120) if aspect_ratio >= 1.23 else
+                    (1120, 1600) if aspect_ratio <= 0.82 else
+                    (1600, 1600)
+                )
+            }
+            return size_options[size_option]
+        target_width, target_height = get_target_size()
         output_images = []
         output_masks = []
 
         for frame in ImageSequence.Iterator(img):
-            frame = node_helpers.pillow(ImageOps.exif_transpose, frame)
-
+            frame = ImageOps.exif_transpose(frame)
             if frame.mode == 'P':
                 frame = frame.convert("RGBA")
             elif 'A' in frame.getbands():
                 frame = frame.convert("RGBA")
-
-            # Process image and mask based on size_option
-            if size_option != "Custom":
-                aspect_ratio = W / H
-
-                if size_option == "Small":
-                    if aspect_ratio >= 1.23:
-                        target_width, target_height = 768, 512
-                    elif 0.82 < aspect_ratio < 1.23:
-                        target_width, target_height = 768, 768
-                    else:
-                        target_width, target_height = 512, 768
-                elif size_option == "Medium":
-                    if aspect_ratio >= 1.23:
-                        target_width, target_height = 1216, 832
-                    elif 0.82 < aspect_ratio < 1.23:
-                        target_width, target_height = 1216, 1216
-                    else:
-                        target_width, target_height = 832, 1216
-                elif size_option == "Large":
-                    if aspect_ratio >= 1.23:
-                        target_width, target_height = 1600, 1120
-                    elif 0.82 < aspect_ratio < 1.23:
-                        target_width, target_height = 1600, 1600
-                    else:
-                        target_width, target_height = 1120, 1600
-
-                # Resize image
-                image = frame.convert("RGB")
-                image = ImageOps.fit(image, (target_width, target_height), method=Image.Resampling.BILINEAR, centering=(0.5, 0.5))
-
-                # Resize mask
-                if 'A' in frame.getbands():
-                    mask_frame = frame.getchannel('A')
-                    mask_image = ImageOps.fit(mask_frame, (target_width, target_height), method=Image.Resampling.BILINEAR, centering=(0.5, 0.5))
-                    mask = np.array(mask_image).astype(np.float32) / 255.0
-                    mask = 1. - torch.from_numpy(mask)
-                else:
-                    mask = torch.zeros((target_height, target_width), dtype=torch.float32, device="cpu")
-            else:
-                ratio = min(max_dimension / W, max_dimension / H)
+            if size_option == "Custom":
+                ratio = min(target_width / W, target_height / H)
                 adjusted_width = round(W * ratio)
                 adjusted_height = round(H * ratio)
-
-                # Resize image
-                image = frame.convert("RGB")
-                image = image.resize((adjusted_width, adjusted_height), Image.Resampling.BILINEAR)
-
-                # Resize mask
-                if 'A' in frame.getbands():
-                    mask_frame = frame.getchannel('A')
-                    mask_image = mask_frame.resize((adjusted_width, adjusted_height), Image.Resampling.BILINEAR)
-                    mask = np.array(mask_image).astype(np.float32) / 255.0
-                    mask = 1. - torch.from_numpy(mask)
+                image_frame = frame.convert("RGB").resize((adjusted_width, adjusted_height), Image.Resampling.BILINEAR)
+            else:
+                image_frame = frame.convert("RGB")
+                image_frame = ImageOps.fit(image_frame, (target_width, target_height), method=Image.Resampling.BILINEAR, centering=(0.5, 0.5))
+            image_array = np.array(image_frame).astype(np.float32) / 255.0
+            output_images.append(torch.from_numpy(image_array)[None,])
+            if 'A' in frame.getbands():
+                mask_frame = frame.getchannel('A')
+                if size_option == "Custom":
+                    mask_frame = mask_frame.resize((adjusted_width, adjusted_height), Image.Resampling.BILINEAR)
                 else:
-                    mask = torch.zeros((adjusted_height, adjusted_width), dtype=torch.float32, device="cpu")
-
-            image = np.array(image).astype(np.float32) / 255.0
-            image = torch.from_numpy(image)[None,]
-            output_images.append(image)
-            output_masks.append(mask.unsqueeze(0))
-
-        if len(output_images) > 1:
-            output_image = torch.cat(output_images, dim=0)
-            output_mask = torch.cat(output_masks, dim=0)
-        else:
-            output_image = output_images[0]
-            output_mask = output_masks[0]
-
-        # 获取图片信息
-        if size_option != "Custom":
-            info = f"Image Path: {image_path}\nOriginal Size: {W}x{H}\nAdjusted Size: {target_width}x{target_height}"
-        else:
-            info = f"Image Path: {image_path}\nOriginal Size: {W}x{H}\nAdjusted Size: {adjusted_width}x{adjusted_height}"
-
+                    mask_frame = ImageOps.fit(mask_frame, (target_width, target_height), method=Image.Resampling.BILINEAR, centering=(0.5, 0.5))
+                mask = np.array(mask_frame).astype(np.float32) / 255.0
+                mask = 1. - mask
+            else:
+                if size_option == "Custom":
+                    mask = np.zeros((adjusted_height, adjusted_width), dtype=np.float32)
+                else:
+                    mask = np.zeros((target_height, target_width), dtype=np.float32)
+            output_masks.append(torch.from_numpy(mask).unsqueeze(0))
+        output_image = torch.cat(output_images, dim=0) if len(output_images) > 1 else output_images[0]
+        output_mask = torch.cat(output_masks, dim=0) if len(output_masks) > 1 else output_masks[0]
+        info = f"Image Path: {image_path}\nOriginal Size: {W}x{H}\nAdjusted Size: {target_width}x{target_height}"
         return (output_image, output_mask, info)
-
     @classmethod
     def VALIDATE_INPUTS(s, image):
         if not folder_paths.exists_annotated_filepath(image):
             return f"Invalid image file: {image}"
         return True
-  
+
 
 #======重置图像尺寸
 class ImageAdjuster:
