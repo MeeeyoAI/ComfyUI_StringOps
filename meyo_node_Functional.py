@@ -1,5 +1,5 @@
-from datetime import datetime
-import ntplib
+import datetime
+import time
 
 #======获取当前时间
 class GetCurrentTime:
@@ -17,7 +17,7 @@ class GetCurrentTime:
             },
         }
 
-    RETURN_TYPES = ("STRING",)
+    RETURN_TYPES = ("STRING", "INT")  # 新增 INTEGER 类型的返回值
     FUNCTION = "get_current_time"
     CATEGORY = "Meeeyo/Functional"
     
@@ -26,13 +26,15 @@ class GetCurrentTime:
 
     def get_current_time(self, prefix="", any=None):
         # Get the current system time
-        current_time = datetime.now()
+        current_time = datetime.datetime.now()
         # Format the time as a string
         formatted_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
         # Include the prefix in the output
         result = f"{prefix}{formatted_time}"
-        # Return the formatted time with prefix as a string
-        return (result,)
+        # Get the current timestamp as an integer with milliseconds precision
+        timestamp = int(round(time.time() * 1000))  # 获取当前时间戳的整数部分并精确到毫秒
+        # Return both the formatted time with prefix and the timestamp
+        return (result, timestamp)  # 返回两个值：字符串和整数
         
 
 #======选择性别和模板

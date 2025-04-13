@@ -1,6 +1,251 @@
+import os
 import csv
 import openpyxl
-import os
+import pathlib
+import folder_paths
+import torch
+import node_helpers
+import numpy as np
+from PIL import Image, ImageOps, ImageSequence
+
+
+#======加载重置图像
+class LoadAndAdjustImage:
+    _color_channels = ["alpha", "red", "green", "blue"]
+    
+    @classmethod
+    def INPUT_TYPES(s):
+        input_dir = folder_paths.get_input_directory()
+        files = [f.name for f in pathlib.Path(input_dir).iterdir() if f.is_file()]
+        return {
+            "required": {
+                "image": (sorted(files), {"image_upload": True}),
+                "max_dimension": ("INT", {"default": 1024, "min": 0, "max": 4096, "step": 8}),
+                "size_option": (["Custom", "Small", "Medium", "Large"], {"default": "Custom"}),
+            }
+        }
+
+    RETURN_TYPES = ("IMAGE", "MASK", "INT", "INT")
+    RETURN_NAMES = ("image", "mask", "width", "height")
+    FUNCTION = "load_image"
+    CATEGORY = "Meeeyo/File"
+
+    def load_image(self, image, max_dimension, size_option):
+        image_path = folder_paths.get_annotated_filepath(image)
+        img = node_helpers.pillow(Image.open, image_path)
+
+        W, H = img.size
+        output_images = []
+        output_masks = []
+
+        for frame in ImageSequence.Iterator(img):
+            frame = node_helpers.pillow(ImageOps.exif_transpose, frame)
+
+            if frame.mode == 'P':
+                frame = frame.convert("RGBA")
+            elif 'A' in frame.getbands():
+                frame = frame.convert("RGBA")
+
+            if size_option != "Custom":
+                aspect_ratio = W / H
+
+                if size_option == "Small":
+                    if aspect_ratio >= 1.23:
+                        target_width, target_height = 768, 512
+                    elif 0.82 < aspect_ratio < 1.23:
+                        target_width, target_height = 768, 768
+                    else:
+                        target_width, target_height = 512, 768
+                elif size_option == "Medium":
+                    if aspect_ratio >= 1.23:
+                        target_width, target_height = 1216, 832
+                    elif 0.82 < aspect_ratio < 1.23:
+                        target_width, target_height = 1216, 1216
+                    else:
+                        target_width, target_height = 832, 1216
+                elif size_option == "Large":
+                    if aspect_ratio >= 1.23:
+                        target_width, target_height = 1600, 1120
+                    elif 0.82 < aspect_ratio < 1.23:
+                        target_width, target_height = 1600, 1600
+                    else:
+                        target_width, target_height = 1120, 1600
+
+                image = frame.convert("RGB")
+                image = ImageOps.fit(image, (target_width, target_height), method=Image.Resampling.BILINEAR, centering=(0.5, 0.5))
+
+                if 'A' in frame.getbands():
+                    mask = np.array(frame.getchannel('A')).astype(np.float32) / 255.0
+                    mask = torch.from_numpy(mask)
+                    mask_image = Image.fromarray((mask.numpy() * 255).astype(np.uint8))
+                    mask_image = ImageOps.fit(mask_image, (target_width, target_height), method=Image.Resampling.BILINEAR, centering=(0.5, 0.5))
+                    mask = np.array(mask_image).astype(np.float32) / 255.0
+                    mask = torch.from_numpy(mask)
+                else:
+                    mask = torch.ones((target_height, target_width), dtype=torch.float32, device="cpu")
+            else:
+                ratio = min(max_dimension / W, max_dimension / H)
+                adjusted_width = round(W * ratio)
+                adjusted_height = round(H * ratio)
+
+                image = frame.convert("RGB")
+                image = image.resize((adjusted_width, adjusted_height), Image.Resampling.BILINEAR)
+
+                if 'A' in frame.getbands():
+                    mask = np.array(frame.getchannel('A')).astype(np.float32) / 255.0
+                    mask = torch.from_numpy(mask)
+                    mask_image = Image.fromarray((mask.numpy() * 255).astype(np.uint8))
+                    mask_image = mask_image.resize((adjusted_width, adjusted_height), Image.Resampling.BILINEAR)
+                    mask = np.array(mask_image).astype(np.float32) / 255.0
+                    mask = torch.from_numpy(mask)
+                else:
+                    mask = torch.ones((adjusted_height, adjusted_width), dtype=torch.float32, device="cpu")
+
+            image = np.array(image).astype(np.float32) / 255.0
+            image = torch.from_numpy(image)[None,]
+            output_images.append(image)
+            output_masks.append(mask.unsqueeze(0))
+
+        if len(output_images) > 1:
+            output_image = torch.cat(output_images, dim=0)
+            output_mask = torch.cat(output_masks, dim=0)
+        else:
+            output_image = output_images[0]
+            output_mask = output_masks[0]
+        if size_option != "Custom":
+            return (output_image, output_mask, target_width, target_height)
+        else:
+            return (output_image, output_mask, adjusted_width, adjusted_height)
+
+    @classmethod
+    def VALIDATE_INPUTS(s, image):
+        if not folder_paths.exists_annotated_filepath(image):
+            return f"Invalid image file: {image}"
+        return True
+
+
+#======重置图像尺寸
+class ImageAdjuster:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "image": ("IMAGE",),
+                "max_dimension": ("INT", {"default": 1024, "min": 0, "max": 4096, "step": 8}),
+                "size_option": (["Custom", "Small", "Medium", "Large"], {"default": "Custom"}),
+            }
+        }
+
+    RETURN_TYPES = ("IMAGE", "INT", "INT")
+    RETURN_NAMES = ("image", "width", "height")
+    FUNCTION = "process_image"
+    CATEGORY = "Meeeyo/File"
+
+    def process_image(self, image, max_dimension=1024, size_option="Custom"):
+        input_image = Image.fromarray((image.squeeze(0).numpy() * 255).astype(np.uint8))
+        W, H = input_image.size
+
+        processed_images = []
+
+        for frame in [input_image]:
+            frame = ImageOps.exif_transpose(frame)
+
+            if frame.mode == 'P':
+                frame = frame.convert("RGBA")
+            elif 'A' in frame.getbands():
+                frame = frame.convert("RGBA")
+
+            if size_option != "Custom":
+                aspect_ratio = W / H
+
+                if size_option == "Small":
+                    if aspect_ratio >= 1.23:
+                        target_width, target_height = 768, 512
+                    elif 0.82 < aspect_ratio < 1.23:
+                        target_width, target_height = 768, 768
+                    else:
+                        target_width, target_height = 512, 768
+                elif size_option == "Medium":
+                    if aspect_ratio >= 1.23:
+                        target_width, target_height = 1216, 832
+                    elif 0.82 < aspect_ratio < 1.23:
+                        target_width, target_height = 1216, 1216
+                    else:
+                        target_width, target_height = 832, 1216
+                elif size_option == "Large":
+                    if aspect_ratio >= 1.23:
+                        target_width, target_height = 1600, 1120
+                    elif 0.82 < aspect_ratio < 1.23:
+                        target_width, target_height = 1600, 1600
+                    else:
+                        target_width, target_height = 1120, 1600
+                processed_image = frame.convert("RGB")
+                processed_image = ImageOps.fit(processed_image, (target_width, target_height), method=Image.Resampling.BILINEAR, centering=(0.5, 0.5))
+            else:
+                ratio = min(max_dimension / W, max_dimension / H)
+                adjusted_width = round(W * ratio)
+                adjusted_height = round(H * ratio)
+
+                processed_image = frame.convert("RGB")
+                processed_image = processed_image.resize((adjusted_width, adjusted_height), Image.Resampling.BILINEAR)
+
+            processed_image = np.array(processed_image).astype(np.float32) / 255.0
+            processed_image = torch.from_numpy(processed_image)[None,]
+            processed_images.append(processed_image)
+
+        output_image = torch.cat(processed_images, dim=0) if len(processed_images) > 1 else processed_images[0]
+        if size_option != "Custom":
+            return (output_image, target_width, target_height)
+        else:
+            return (output_image, adjusted_width, adjusted_height)
+
+#======保存图像
+class SaveImagEX:
+    def __init__(self):
+        self.output_dir = folder_paths.get_output_directory()
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "image": ("IMAGE",),
+                "save_path": ("STRING", {"default": "./output"}),
+                "image_name": ("STRING", {"default": "ComfyUI"}),
+            },
+        }
+
+    RETURN_TYPES = ("IMAGE",)
+    RETURN_NAMES = ("image",)
+    FUNCTION = "save_image"
+    OUTPUT_NODE = True
+    CATEGORY = "Meeeyo/File"
+
+    def save_image(self, image, save_path, image_name):
+        if not isinstance(image, torch.Tensor):
+            raise ValueError("Invalid image tensor format")
+        if save_path == "./output":
+            save_path = self.output_dir
+        elif not os.path.isabs(save_path):
+            save_path = os.path.join(self.output_dir, save_path)
+        os.makedirs(save_path, exist_ok=True)
+        base_name = os.path.splitext(image_name)[0]
+        batch_size = image.shape[0]
+        channel_to_mode = {1: "L", 3: "RGB", 4: "RGBA"}
+
+        for i in range(batch_size):
+            filename = f"{base_name}.png" if batch_size == 1 else f"{base_name}_{i:05d}.png"
+            full_path = os.path.join(save_path, filename)
+            single_image = image[i].cpu().numpy()
+            single_image = (single_image * 255).astype('uint8')
+            channels = single_image.shape[2]
+            if channels not in channel_to_mode:
+                raise ValueError(f"Unsupported channel number: {channels}")
+            mode = channel_to_mode[channels]
+            if channels == 1:
+                single_image = single_image[:, :, 0]
+            pil_image = Image.fromarray(single_image, mode)
+            pil_image.save(full_path, format="PNG", compress_level=0)
+        return (image,)
 
 
 #======文件路径和后缀统计

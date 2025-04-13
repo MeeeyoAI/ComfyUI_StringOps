@@ -1,19 +1,20 @@
-from .meyo_node_Computational import StandardSize, CompareInt, FloatToInteger, GenerateNumbers, GetRandomIntegerInRange
-from .meyo_node_String import AddPrefixSuffix, ExtractSubstring, ExtractSubstringByIndices, SplitStringByDelimiter, ProcessString, ExtractBeforeAfter, ReplaceNthOccurrence, BatchReplaceStrings, ReplaceMultiple, RandomLineFromText, CheckSubstringPresence, AddPrefixSuffixToLines, ExtractAndCombineLines, FilterLinesBySubstrings, FilterLinesByWordCount, SplitAndExtractText, CountOccurrences, ExtractLinesByIndex, ExtractSpecificLines, RemoveContentBetweenChars, ShuffleTextLines, ConditionalTextOutput, TextConditionCheck, TextConcatenation, ExtractSpecificData, FindFirstLineContent
-from .meyo_node_File import FileListAndSuffix, ReadExcelData, WriteExcelData, FindExcelData, ReadExcelRowOrColumnDiff
+from .meyo_node_Computational import CompareInt, FloatToInteger, GenerateNumbers, GetRandomIntegerInRange
+from .meyo_node_String import SingleTextInput, MultiParamInputNode, AddPrefixSuffix, ExtractSubstring, ExtractSubstringByIndices, SplitStringByDelimiter, ProcessString, ExtractBeforeAfter, ReplaceNthOccurrence, BatchReplaceStrings, ReplaceMultiple, RandomLineFromText, CheckSubstringPresence, AddPrefixSuffixToLines, ExtractAndCombineLines, FilterLinesBySubstrings, FilterLinesByWordCount, SplitAndExtractText, CountOccurrences, ExtractLinesByIndex, ExtractSpecificLines, RemoveContentBetweenChars, ShuffleTextLines, ConditionalTextOutput, TextConditionCheck, TextConcatenation, ExtractSpecificData, FindFirstLineContent
+from .meyo_node_File import LoadAndAdjustImage, ImageAdjuster, SaveImagEX, FileListAndSuffix, ReadExcelData, WriteExcelData, FindExcelData, ReadExcelRowOrColumnDiff
 from .meyo_node_Functional import GetCurrentTime, SelectionParameter
 
 
 NODE_CLASS_MAPPINGS = {
 
     #运算型节点：meyo_node_Computational
-    "StandardSize": StandardSize,
     "CompareInt": CompareInt,
     "FloatToInteger": FloatToInteger,
     "GenerateNumbers": GenerateNumbers,
     "GetRandomIntegerInRange": GetRandomIntegerInRange,
 
     #字符串处理：meyo_node_String
+    "SingleTextInput": SingleTextInput,  
+    "MultiParamInputNode": MultiParamInputNode,
     "AddPrefixSuffix": AddPrefixSuffix,
     "ExtractSubstring": ExtractSubstring,
     "ExtractSubstringByIndices": ExtractSubstringByIndices,
@@ -42,6 +43,9 @@ NODE_CLASS_MAPPINGS = {
     "FindFirstLineContent": FindFirstLineContent,
 
     #文件处理：meyo_node_File
+    "LoadAndAdjustImage": LoadAndAdjustImage,
+    "ImageAdjuster": ImageAdjuster,
+    "SaveImagEX": SaveImagEX,
     "FileListAndSuffix": FileListAndSuffix,
     "ReadExcelData": ReadExcelData,
     "WriteExcelData": WriteExcelData,
@@ -58,13 +62,14 @@ NODE_CLASS_MAPPINGS = {
 NODE_DISPLAY_NAME_MAPPINGS = {
 
    #运算型节点：meyo_node_Computational
-   "StandardSize": "重置尺寸(meeeyo.com)",
    "CompareInt": "比较数值(meeeyo.com)",
    "FloatToInteger": "规范数值(meeeyo.com)",
    "GenerateNumbers": "生成范围数组(meeeyo.com)",
    "GetRandomIntegerInRange": "范围内随机数(meeeyo.com)",
 
    #字符串处理：meyo_node_String
+   "SingleTextInput": "文本输入(meeeyo.com)",  
+   "MultiParamInputNode": "多参数输入(meeeyo.com)",
    "AddPrefixSuffix": "添加前后缀(meeeyo.com)",
    "ExtractSubstring": "提取标签之间(meeeyo.com)",
    "ExtractSubstringByIndices": "按数字范围提取(meeeyo.com)",
@@ -93,6 +98,9 @@ NODE_DISPLAY_NAME_MAPPINGS = {
    "FindFirstLineContent": "指定字符行参数(meeeyo.com)",
 
    #文件处理：meyo_node_File
+   "LoadAndAdjustImage": "加载重置图像(meeeyo.com)",
+   "ImageAdjuster": "重置图像(meeeyo.com)",
+   "SaveImagEX": "保存图像(meeeyo.com)",
    "FileListAndSuffix": "从路径加载(meeeyo.com)",
    "ReadExcelData": "读取表格数据(meeeyo.com)",
    "WriteExcelData": "写入表格数据(meeeyo.com)",
@@ -100,7 +108,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
    "ReadExcelRowOrColumnDiff": "读取表格数量差(meeeyo.com)",
    
     #功能型节点：meyo_node_Functional
-   "GetCurrentTime": "当前时间",
+   "GetCurrentTime": "当前时间(戳)",
    "SelectionParameter": "选择参数",
   
 }

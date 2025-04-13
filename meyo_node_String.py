@@ -7,6 +7,47 @@ import math
 import re
 
 
+#======多参数输入
+class SingleTextInput:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "text": ("STRING", {"default": "", "multiline": True}),
+            }
+        }
+
+    RETURN_TYPES = ("STRING",)
+    FUNCTION = "process_input"
+    CATEGORY = "Meeeyo/Text"
+    OUTPUT_NODE = False
+
+    def process_input(self, text):
+        return (text,)
+    
+
+#======多参数输入
+class MultiParamInputNode:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "text1": ("STRING", {"default": "", "multiline": True}),  # 第一个多行文本输入框
+                "text2": ("STRING", {"default": "", "multiline": True}),  # 第二个多行文本输入框
+                "int1": ("INT", {"default": 0, "min": -1000000, "max": 1000000}),  # 第一个整数输入框
+                "int2": ("INT", {"default": 0, "min": -1000000, "max": 1000000}),  # 第二个整数输入框
+            }
+        }
+
+    RETURN_TYPES = ("STRING", "STRING", "INT", "INT")  # 返回两个字符串和两个整数
+    FUNCTION = "process_inputs"
+    CATEGORY = "Meeeyo/String"
+    OUTPUT_NODE = False
+
+    def process_inputs(self, text1, text2, int1, int2):
+        return (text1, text2, int1, int2)
+
+
 #======添加前后缀
 class AddPrefixSuffix:
     def __init__(self):

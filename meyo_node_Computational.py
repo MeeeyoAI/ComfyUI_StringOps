@@ -2,52 +2,6 @@ import math
 import random
 
 
-#======宽度高度调整
-class StandardSize:
-    def __init__(self):
-        pass
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "width": ("INT",),
-                "height": ("INT",),
-                "size_option": (["小尺寸", "中尺寸", "大尺寸"], {"default": "中尺寸"}),  # 下拉选择框
-            },
-            "optional": {},
-        }
-
-    RETURN_TYPES = ("INT", "INT")
-    FUNCTION = "resize_image"
-    CATEGORY = "Meeeyo/Image"
-
-    def resize_image(self, width, height, size_option):
-        # 根据选择的选项调整尺寸像尺寸
-        if size_option == "小尺寸":
-            if width / height >= 1.23:
-                return (768, 512)
-            elif 0.82 < width / height < 1.23:
-                return (768, 768)
-            else:
-                return (512, 768)
-        elif size_option == "中尺寸":
-            if width / height >= 1.23:
-                return (1216, 832)
-            elif 0.82 < width / height < 1.23:
-                return (1216, 1216)
-            else:
-                return (832, 1216)
-        elif size_option == "大尺寸":
-            if width / height >= 1.23:
-                return (1600, 1120)
-            elif 0.82 < width / height < 1.23:
-                return (1600, 1600)
-            else:
-                return (1120, 1600)
-
-
-
 #======比较数值
 class CompareInt:
     def __init__(self):
