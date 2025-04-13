@@ -7,7 +7,7 @@ import math
 import re
 
 
-#======多参数输入
+#======文本输入
 class SingleTextInput:
     @classmethod
     def INPUT_TYPES(cls):

@@ -25,12 +25,15 @@ class LoadAndAdjustImage:
             }
         }
 
-    RETURN_TYPES = ("IMAGE", "MASK", "INT", "INT")
-    RETURN_NAMES = ("image", "mask", "width", "height")
+    RETURN_TYPES = ("IMAGE", "MASK", "STRING")
+    RETURN_NAMES = ("image", "mask", "info")
     FUNCTION = "load_image"
     CATEGORY = "Meeeyo/File"
 
     def load_image(self, image, max_dimension, size_option):
+        from PIL import Image, ImageOps, ImageSequence
+        import numpy as np
+        import torch
         image_path = folder_paths.get_annotated_filepath(image)
         img = node_helpers.pillow(Image.open, image_path)
 
@@ -46,6 +49,7 @@ class LoadAndAdjustImage:
             elif 'A' in frame.getbands():
                 frame = frame.convert("RGBA")
 
+            # Process image and mask based on size_option
             if size_option != "Custom":
                 aspect_ratio = W / H
 
@@ -71,35 +75,35 @@ class LoadAndAdjustImage:
                     else:
                         target_width, target_height = 1120, 1600
 
+                # Resize image
                 image = frame.convert("RGB")
                 image = ImageOps.fit(image, (target_width, target_height), method=Image.Resampling.BILINEAR, centering=(0.5, 0.5))
 
+                # Resize mask
                 if 'A' in frame.getbands():
-                    mask = np.array(frame.getchannel('A')).astype(np.float32) / 255.0
-                    mask = torch.from_numpy(mask)
-                    mask_image = Image.fromarray((mask.numpy() * 255).astype(np.uint8))
-                    mask_image = ImageOps.fit(mask_image, (target_width, target_height), method=Image.Resampling.BILINEAR, centering=(0.5, 0.5))
+                    mask_frame = frame.getchannel('A')
+                    mask_image = ImageOps.fit(mask_frame, (target_width, target_height), method=Image.Resampling.BILINEAR, centering=(0.5, 0.5))
                     mask = np.array(mask_image).astype(np.float32) / 255.0
-                    mask = torch.from_numpy(mask)
+                    mask = 1. - torch.from_numpy(mask)
                 else:
-                    mask = torch.ones((target_height, target_width), dtype=torch.float32, device="cpu")
+                    mask = torch.zeros((target_height, target_width), dtype=torch.float32, device="cpu")
             else:
                 ratio = min(max_dimension / W, max_dimension / H)
                 adjusted_width = round(W * ratio)
                 adjusted_height = round(H * ratio)
 
+                # Resize image
                 image = frame.convert("RGB")
                 image = image.resize((adjusted_width, adjusted_height), Image.Resampling.BILINEAR)
 
+                # Resize mask
                 if 'A' in frame.getbands():
-                    mask = np.array(frame.getchannel('A')).astype(np.float32) / 255.0
-                    mask = torch.from_numpy(mask)
-                    mask_image = Image.fromarray((mask.numpy() * 255).astype(np.uint8))
-                    mask_image = mask_image.resize((adjusted_width, adjusted_height), Image.Resampling.BILINEAR)
+                    mask_frame = frame.getchannel('A')
+                    mask_image = mask_frame.resize((adjusted_width, adjusted_height), Image.Resampling.BILINEAR)
                     mask = np.array(mask_image).astype(np.float32) / 255.0
-                    mask = torch.from_numpy(mask)
+                    mask = 1. - torch.from_numpy(mask)
                 else:
-                    mask = torch.ones((adjusted_height, adjusted_width), dtype=torch.float32, device="cpu")
+                    mask = torch.zeros((adjusted_height, adjusted_width), dtype=torch.float32, device="cpu")
 
             image = np.array(image).astype(np.float32) / 255.0
             image = torch.from_numpy(image)[None,]
@@ -112,17 +116,21 @@ class LoadAndAdjustImage:
         else:
             output_image = output_images[0]
             output_mask = output_masks[0]
+
+        # 获取图片信息
         if size_option != "Custom":
-            return (output_image, output_mask, target_width, target_height)
+            info = f"Image Path: {image_path}\nOriginal Size: {W}x{H}\nAdjusted Size: {target_width}x{target_height}"
         else:
-            return (output_image, output_mask, adjusted_width, adjusted_height)
+            info = f"Image Path: {image_path}\nOriginal Size: {W}x{H}\nAdjusted Size: {adjusted_width}x{adjusted_height}"
+
+        return (output_image, output_mask, info)
 
     @classmethod
     def VALIDATE_INPUTS(s, image):
         if not folder_paths.exists_annotated_filepath(image):
             return f"Invalid image file: {image}"
         return True
-
+  
 
 #======重置图像尺寸
 class ImageAdjuster:
