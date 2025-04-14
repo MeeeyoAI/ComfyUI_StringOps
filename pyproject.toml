@@ -1,0 +1,15 @@
+[project]
+name = "stringops"
+description = "StringOps is a versatile text processing toolkit built for ComfyUI's node-based workflows"
+version = "1.0.0"
+license = {file = "LICENSE"}
+dependencies = ["#secrets", "requests>=2.25.1,<3.0.0", "ntplib", "openpyxl"]
+
+[project.urls]
+Repository = "https://github.com/MeeeyoAI/ComfyUI_StringOps"
+#  Used by Comfy Registry https://comfyregistry.org
+
+[tool.comfy]
+PublisherId = ""
+DisplayName = "ComfyUI_StringOps"
+Icon = ""
