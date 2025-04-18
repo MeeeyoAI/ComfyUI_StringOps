@@ -1,9 +1,12 @@
 import os
 import csv
-import openpyxl
-import pathlib
-import folder_paths
 import torch
+import shutil
+import requests
+import chardet
+import pathlib
+import openpyxl
+import folder_paths
 import node_helpers
 import numpy as np
 from PIL import Image, ImageOps, ImageSequence
@@ -27,6 +30,9 @@ class LoadAndAdjustImage:
     RETURN_NAMES = ("image", "mask", "info")
     FUNCTION = "load_image"
     CATEGORY = "Meeeyo/File"
+    
+    def IS_CHANGED():
+        return float("NaN")
 
     def load_image(self, image, max_dimension, size_option):
         image_path = folder_paths.get_annotated_filepath(image)
@@ -118,6 +124,9 @@ class ImageAdjuster:
     RETURN_NAMES = ("image", "width", "height")
     FUNCTION = "process_image"
     CATEGORY = "Meeeyo/File"
+    
+    def IS_CHANGED():
+        return float("NaN")
 
     def process_image(self, image, max_dimension=1024, size_option="Custom"):
         input_image = Image.fromarray((image.squeeze(0).numpy() * 255).astype(np.uint8))
@@ -136,27 +145,25 @@ class ImageAdjuster:
             if size_option != "Custom":
                 aspect_ratio = W / H
 
-                if size_option == "Small":
-                    if aspect_ratio >= 1.23:
-                        target_width, target_height = 768, 512
-                    elif 0.82 < aspect_ratio < 1.23:
-                        target_width, target_height = 768, 768
-                    else:
-                        target_width, target_height = 512, 768
-                elif size_option == "Medium":
-                    if aspect_ratio >= 1.23:
-                        target_width, target_height = 1216, 832
-                    elif 0.82 < aspect_ratio < 1.23:
-                        target_width, target_height = 1216, 1216
-                    else:
-                        target_width, target_height = 832, 1216
-                elif size_option == "Large":
-                    if aspect_ratio >= 1.23:
-                        target_width, target_height = 1600, 1120
-                    elif 0.82 < aspect_ratio < 1.23:
-                        target_width, target_height = 1600, 1600
-                    else:
-                        target_width, target_height = 1120, 1600
+                size_options = {
+                    "Small": (
+                        (768, 512) if aspect_ratio >= 1.23 else
+                        (512, 768) if aspect_ratio <= 0.82 else
+                        (768, 768)
+                    ),
+                    "Medium": (
+                        (1216, 832) if aspect_ratio >= 1.23 else
+                        (832, 1216) if aspect_ratio <= 0.82 else
+                        (1216, 1216)
+                    ),
+                    "Large": (
+                        (1600, 1120) if aspect_ratio >= 1.23 else
+                        (1120, 1600) if aspect_ratio <= 0.82 else
+                        (1600, 1600)
+                    )
+                }
+
+                target_width, target_height = size_options[size_option]
                 processed_image = frame.convert("RGB")
                 processed_image = ImageOps.fit(processed_image, (target_width, target_height), method=Image.Resampling.BILINEAR, centering=(0.5, 0.5))
             else:
@@ -177,6 +184,7 @@ class ImageAdjuster:
         else:
             return (output_image, adjusted_width, adjusted_height)
 
+
 #======保存图像
 class SaveImagEX:
     def __init__(self):
@@ -189,6 +197,7 @@ class SaveImagEX:
                 "image": ("IMAGE",),
                 "save_path": ("STRING", {"default": "./output"}),
                 "image_name": ("STRING", {"default": "ComfyUI"}),
+                "image_format": (["PNG", "JPG"], {"default": "JPG"})
             },
         }
 
@@ -197,8 +206,11 @@ class SaveImagEX:
     FUNCTION = "save_image"
     OUTPUT_NODE = True
     CATEGORY = "Meeeyo/File"
+    
+    def IS_CHANGED():
+        return float("NaN")
 
-    def save_image(self, image, save_path, image_name):
+    def save_image(self, image, save_path, image_name, image_format):
         if not isinstance(image, torch.Tensor):
             raise ValueError("Invalid image tensor format")
         if save_path == "./output":
@@ -206,12 +218,24 @@ class SaveImagEX:
         elif not os.path.isabs(save_path):
             save_path = os.path.join(self.output_dir, save_path)
         os.makedirs(save_path, exist_ok=True)
+        
+        # 移除可能存在的扩展名，然后添加用户选择的格式对应的扩展名
         base_name = os.path.splitext(image_name)[0]
+        
         batch_size = image.shape[0]
         channel_to_mode = {1: "L", 3: "RGB", 4: "RGBA"}
 
         for i in range(batch_size):
-            filename = f"{base_name}.png" if batch_size == 1 else f"{base_name}_{i:05d}.png"
+            # 根据选择的格式动态设置扩展名
+            if image_format == "PNG":
+                filename = f"{base_name}.png" if batch_size == 1 else f"{base_name}_{i:05d}.png"
+                save_format = "PNG"
+                save_params = {"compress_level": 0}
+            else:  # JPG
+                filename = f"{base_name}.jpg" if batch_size == 1 else f"{base_name}_{i:05d}.jpg"
+                save_format = "JPEG"
+                save_params = {"quality": 100}
+            
             full_path = os.path.join(save_path, filename)
             single_image = image[i].cpu().numpy()
             single_image = (single_image * 255).astype('uint8')
@@ -222,8 +246,96 @@ class SaveImagEX:
             if channels == 1:
                 single_image = single_image[:, :, 0]
             pil_image = Image.fromarray(single_image, mode)
-            pil_image.save(full_path, format="PNG", compress_level=0)
+            
+            # 如果是JPG格式，需要转换为RGB模式
+            if image_format == "JPG":
+                pil_image = pil_image.convert("RGB")
+            
+            pil_image.save(full_path, format=save_format, **save_params)
         return (image,)
+
+
+#======文件操作
+class FileCopyCutNode:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "source_path": ("STRING", {"default": "", "multiline": False}),
+                "destination_path": ("STRING", {"default": "", "multiline": False}),
+                "operation": (["copy", "cut"], {"default": "copy"}),
+            },
+            "optional": {
+                "any": ("*",), 
+            },
+        }
+    
+    RETURN_TYPES = ("STRING",)  # 返回操作结果字符串
+    RETURN_NAMES = ("result",)
+    FUNCTION = "copy_cut_file"
+    CATEGORY = "Meeeyo/File"
+    
+    def IS_CHANGED():
+        return float("NaN")
+
+    def copy_cut_file(self, source_path, destination_path, operation, **kwargs):
+        result = "执行失败"
+        try:
+            # 检查文件是否存在
+            if not os.path.isfile(source_path):
+                raise Exception(f"Source file not found: {source_path}")
+                
+            # 确保目录存在
+            os.makedirs(os.path.dirname(destination_path), exist_ok=True)
+            
+            # 执行复制或剪切操作
+            if operation == "copy":
+                shutil.copy2(source_path, destination_path)
+                result = "执行成功: 文件已复制"
+            elif operation == "cut":
+                shutil.move(source_path, destination_path)
+                result = "执行成功: 文件已剪切"
+        except Exception as e:
+            result = f"执行失败: {str(e)}"
+        
+        return (result,)
+
+
+#======读取页面
+class ReadWebNode:
+    def __init__(self):
+        pass
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "url": ("STRING", {"default": "https://", "multiline": False}),
+            },
+            "optional": {
+                "any": ("*",),  # 可选触发输入
+            },
+        }
+
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("output",)
+    FUNCTION = "read_web"
+    CATEGORY = "Meeeyo/File"
+    
+    def IS_CHANGED():
+        return float("NaN")
+
+    def read_web(self, url, any=None):
+        try:
+            response = requests.get(url)
+            encoding = chardet.detect(response.content)['encoding']
+            response.encoding = encoding or 'ISO-8859-1'
+            if response.status_code == 200:
+                return (response.text,)
+            else:
+                return (f"Failed to retrieve webpage. Status code: {response.status_code}",)
+        except Exception as e:
+            return (f"Error: {str(e)}",)
 
 
 #======文件路径和后缀统计

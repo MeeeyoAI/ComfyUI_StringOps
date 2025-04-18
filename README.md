@@ -22,6 +22,10 @@ Achieves deep integration with Excel, supporting read and write operations on pa
 
 3.Added functionality to get the current timestamp (can be used as a random seed).
 
+4.Added the ability to copy and cut files.
+
+5.Added the feature of reading web page content.
+
 ## Partial Node Display
 **Text Processing Node**
 ![image](image/meyo01.png)   

@@ -1,6 +1,6 @@
 from .meyo_node_Computational import CompareInt, FloatToInteger, GenerateNumbers, GetRandomIntegerInRange
 from .meyo_node_String import SingleTextInput, MultiParamInputNode, AddPrefixSuffix, ExtractSubstring, ExtractSubstringByIndices, SplitStringByDelimiter, ProcessString, ExtractBeforeAfter, ReplaceNthOccurrence, BatchReplaceStrings, ReplaceMultiple, RandomLineFromText, CheckSubstringPresence, AddPrefixSuffixToLines, ExtractAndCombineLines, FilterLinesBySubstrings, FilterLinesByWordCount, SplitAndExtractText, CountOccurrences, ExtractLinesByIndex, ExtractSpecificLines, RemoveContentBetweenChars, ShuffleTextLines, ConditionalTextOutput, TextConditionCheck, TextConcatenation, ExtractSpecificData, FindFirstLineContent
-from .meyo_node_File import LoadAndAdjustImage, ImageAdjuster, SaveImagEX, FileListAndSuffix, ReadExcelData, WriteExcelData, FindExcelData, ReadExcelRowOrColumnDiff
+from .meyo_node_File import LoadAndAdjustImage, ImageAdjuster, SaveImagEX, FileCopyCutNode, ReadWebNode, FileListAndSuffix, ReadExcelData, WriteExcelData, FindExcelData, ReadExcelRowOrColumnDiff
 from .meyo_node_Functional import GetCurrentTime, SelectionParameter
 
 
@@ -46,6 +46,10 @@ NODE_CLASS_MAPPINGS = {
     "LoadAndAdjustImage": LoadAndAdjustImage,
     "ImageAdjuster": ImageAdjuster,
     "SaveImagEX": SaveImagEX,
+    "FileCopyCutNode": FileCopyCutNode,
+    
+    "ReadWebNode": ReadWebNode,
+
     "FileListAndSuffix": FileListAndSuffix,
     "ReadExcelData": ReadExcelData,
     "WriteExcelData": WriteExcelData,
@@ -101,6 +105,11 @@ NODE_DISPLAY_NAME_MAPPINGS = {
    "LoadAndAdjustImage": "加载重置图像(meeeyo.com)",
    "ImageAdjuster": "重置图像(meeeyo.com)",
    "SaveImagEX": "保存图像(meeeyo.com)",
+   
+   "ReadWebNode": "读取页面(meeeyo.com)",
+
+
+   "FileCopyCutNode": "文件操作(meeeyo.com)",
    "FileListAndSuffix": "从路径加载(meeeyo.com)",
    "ReadExcelData": "读取表格数据(meeeyo.com)",
    "WriteExcelData": "写入表格数据(meeeyo.com)",
