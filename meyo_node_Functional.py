@@ -83,7 +83,7 @@ class ReadWebNode:
 
     RETURN_TYPES = ("STRING",)
     FUNCTION = "fetch_data"
-    CATEGORY = "Meyo/Functional"
+    CATEGORY = "Meeeyo/Functional"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
     
     def IS_CHANGED():

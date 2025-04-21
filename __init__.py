@@ -49,7 +49,8 @@ NODE_CLASS_MAPPINGS = {
     "CustomCrop": CustomCrop,
 
     "SaveImagEX": SaveImagEX, 
-    "FileCopyCutNode": FileCopyCutNode,    
+    "FileCopyCutNode": FileCopyCutNode,   
+    "FileDeleteNode": FileDeleteNode,   
     "FileListAndSuffix": FileListAndSuffix,
     "ReadExcelData": ReadExcelData,
     "WriteExcelData": WriteExcelData,
@@ -108,6 +109,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
 
    "SaveImagEX": "保存图像(meeeyo.com)",
    "FileCopyCutNode": "文件操作(meeeyo.com)",
+   "FileDeleteNode": "清理文件(meeeyo.com)",
    "FileListAndSuffix": "从路径加载(meeeyo.com)",
    "ReadExcelData": "读取表格数据(meeeyo.com)",
    "WriteExcelData": "写入表格数据(meeeyo.com)",

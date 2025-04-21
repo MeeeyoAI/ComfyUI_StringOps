@@ -427,6 +427,73 @@ class FileCopyCutNode:
         return (result,)
 
 
+#======清理文件
+class FileDeleteNode:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "target_paths": ("STRING", {"default": "", "multiline": True}),
+            },
+            "optional": {
+                "any": ("*",),
+            },
+        }
+    
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("result",)
+    FUNCTION = "delete_files"
+    CATEGORY = "Meeeyo/File"
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
+    def delete_files(self, target_paths, **kwargs):
+        result = "执行失败"
+        deleted_count = 0
+        total_count = 0
+        error_messages = []
+        
+        try:
+            # 拆分多行路径并去空
+            paths = [path.strip() for path in target_paths.split('\n') if path.strip()]
+            total_count = len(paths)
+            
+            if total_count == 0:
+                raise Exception("未提供有效的文件路径")
+                
+            # 遍历所有路径进行删除
+            for path in paths:
+                if not os.path.exists(path):
+                    error_messages.append(f"路径不存在: {path}")
+                    continue
+                    
+                try:
+                    # 删除文件或文件夹
+                    if os.path.isfile(path):
+                        os.remove(path)
+                    else:
+                        shutil.rmtree(path)
+                    deleted_count += 1
+                except Exception as e:
+                    error_messages.append(f"删除失败: {path} - {str(e)}")
+            
+            # 构建结果字符串
+            result_parts = []
+            if deleted_count > 0:
+                result_parts.append(f"成功删除 {deleted_count}/{total_count} 个路径")
+            
+            if error_messages:
+                result_parts.append("\n错误详情:")
+                result_parts.extend(error_messages)
+            
+            result = "\n".join(result_parts)
+            
+        except Exception as e:
+            result = f"执行失败: {str(e)}"
+            
+        return (result,)
+    
+
+
 #======文件路径和后缀统计
 class FileListAndSuffix:
     def __init__(self):
