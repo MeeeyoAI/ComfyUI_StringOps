@@ -1,7 +1,7 @@
-from .meyo_node_Computational import CompareInt, FloatToInteger, GenerateNumbers, GetRandomIntegerInRange
-from .meyo_node_String import SingleTextInput, MultiParamInputNode, AddPrefixSuffix, ExtractSubstring, ExtractSubstringByIndices, SplitStringByDelimiter, ProcessString, ExtractBeforeAfter, ReplaceNthOccurrence, BatchReplaceStrings, ReplaceMultiple, RandomLineFromText, CheckSubstringPresence, AddPrefixSuffixToLines, ExtractAndCombineLines, FilterLinesBySubstrings, FilterLinesByWordCount, SplitAndExtractText, CountOccurrences, ExtractLinesByIndex, ExtractSpecificLines, RemoveContentBetweenChars, ShuffleTextLines, ConditionalTextOutput, TextConditionCheck, TextConcatenation, ExtractSpecificData, FindFirstLineContent
-from .meyo_node_File import LoadAndAdjustImage, ImageAdjuster, SaveImagEX, FileCopyCutNode, ReadWebNode, FileListAndSuffix, ReadExcelData, WriteExcelData, FindExcelData, ReadExcelRowOrColumnDiff
-from .meyo_node_Functional import GetCurrentTime, SelectionParameter
+from .meyo_node_Computational import  *
+from .meyo_node_String import  *
+from .meyo_node_File import *
+from .meyo_node_Functional import *
 
 
 NODE_CLASS_MAPPINGS = {
@@ -11,6 +11,7 @@ NODE_CLASS_MAPPINGS = {
     "FloatToInteger": FloatToInteger,
     "GenerateNumbers": GenerateNumbers,
     "GetRandomIntegerInRange": GetRandomIntegerInRange,
+   
 
     #字符串处理：meyo_node_String
     "SingleTextInput": SingleTextInput,  
@@ -45,11 +46,10 @@ NODE_CLASS_MAPPINGS = {
     #文件处理：meyo_node_File
     "LoadAndAdjustImage": LoadAndAdjustImage,
     "ImageAdjuster": ImageAdjuster,
-    "SaveImagEX": SaveImagEX,
-    "FileCopyCutNode": FileCopyCutNode,
-    
-    "ReadWebNode": ReadWebNode,
+    "CustomCrop": CustomCrop,
 
+    "SaveImagEX": SaveImagEX, 
+    "FileCopyCutNode": FileCopyCutNode,    
     "FileListAndSuffix": FileListAndSuffix,
     "ReadExcelData": ReadExcelData,
     "WriteExcelData": WriteExcelData,
@@ -59,7 +59,7 @@ NODE_CLASS_MAPPINGS = {
     #功能型节点：meyo_node_Functional
     "GetCurrentTime": GetCurrentTime,
     "SelectionParameter": SelectionParameter,
-
+    "ReadWebNode": ReadWebNode,
 }
 
 
@@ -104,11 +104,9 @@ NODE_DISPLAY_NAME_MAPPINGS = {
    #文件处理：meyo_node_File
    "LoadAndAdjustImage": "加载重置图像(meeeyo.com)",
    "ImageAdjuster": "重置图像(meeeyo.com)",
+   "CustomCrop": "裁剪图像(meeeyo.com)",
+
    "SaveImagEX": "保存图像(meeeyo.com)",
-   
-   "ReadWebNode": "读取页面(meeeyo.com)",
-
-
    "FileCopyCutNode": "文件操作(meeeyo.com)",
    "FileListAndSuffix": "从路径加载(meeeyo.com)",
    "ReadExcelData": "读取表格数据(meeeyo.com)",
@@ -118,8 +116,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
    
     #功能型节点：meyo_node_Functional
    "GetCurrentTime": "当前时间(戳)",
-   "SelectionParameter": "选择参数",
-  
+   "SelectionParameter": "选择参数(meeeyo.com)",
+   "ReadWebNode": "读取页面(meeeyo.com)",
 }
 
 

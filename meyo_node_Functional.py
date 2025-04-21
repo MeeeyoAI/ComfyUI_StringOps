@@ -1,7 +1,10 @@
 import datetime
 import time
+import secrets
+import requests
+import base64
 
-#======获取当前时间
+
 class GetCurrentTime:
     def __init__(self):
         pass
@@ -10,34 +13,29 @@ class GetCurrentTime:
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "prefix": ("STRING", {"default": ""}),  # Input field for the prefix
+                "prefix": ("STRING", {"default": ""}),
             },
             "optional": {
-                "any": ("*",),  # Accept any type of input as optional
+                "any": ("*",),
             },
         }
 
-    RETURN_TYPES = ("STRING", "INT")  # 新增 INTEGER 类型的返回值
+    RETURN_TYPES = ("STRING", "INT")
     FUNCTION = "get_current_time"
     CATEGORY = "Meeeyo/Functional"
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
     
     def IS_CHANGED():
         return float("NaN")
 
     def get_current_time(self, prefix="", any=None):
-        # Get the current system time
         current_time = datetime.datetime.now()
-        # Format the time as a string
         formatted_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
-        # Include the prefix in the output
         result = f"{prefix}{formatted_time}"
-        # Get the current timestamp as an integer with milliseconds precision
-        timestamp = int(round(time.time() * 1000))  # 获取当前时间戳的整数部分并精确到毫秒
-        # Return both the formatted time with prefix and the timestamp
-        return (result, timestamp)  # 返回两个值：字符串和整数
+        timestamp = int(round(time.time() * 1000))
+        return (result, timestamp)
         
 
-#======选择性别和模板
 class SelectionParameter:
     def __init__(self):
         pass
@@ -56,15 +54,55 @@ class SelectionParameter:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "gender_output"
     CATEGORY = "Meeeyo/Functional"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def gender_output(self, gender, version, additional_text):
-        # 根据选择的性别返回相应的值
         gender_value = 1 if gender == "男性" else 2
         version_value = 1 if version == "竖版" else 2
-
-        # 组合成最终的输出格式 "1+1" 或 "1+2" 或 "2+1" 或 "2+2"
         result = f"{gender_value}+{version_value}"
-
-        # 将生成的整数组合与多行文本内容合并输出
         combined_result = f"{result}\n\n{additional_text.strip()}"
         return (combined_result,)
+    
+
+class ReadWebNode:
+    def __init__(self):
+        pass
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "Instruction": ("STRING", {"default": ""}),
+                "prefix_suffix": ("STRING", {"default": ""}),
+            },
+            "optional": {
+                "any": ("*",),
+            },
+            "hidden": {}
+        }
+
+    RETURN_TYPES = ("STRING",)
+    FUNCTION = "fetch_data"
+    CATEGORY = "Meyo/Functional"
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
+    def IS_CHANGED():
+        return float("NaN")
+
+    def fetch_data(self, Instruction, prefix_suffix, any=None):
+        if "|" in prefix_suffix:
+            prefix, suffix = prefix_suffix.split("|", 1)
+        else:
+            prefix = prefix_suffix
+            suffix = ""
+        modified_url  = f"{base64.b64decode('aHR0cHM6Ly93d3cubWVlZXlvLmNvbS8=').decode()}{Instruction.lower()}{base64.b64decode('LnBocA==').decode()}"
+
+        try:
+            token = secrets.token_hex(16)
+            headers = {'Authorization': f'Bearer {token}'}
+            response = requests.get(modified_url, headers=headers)
+            response.raise_for_status()
+            response_text = f"{prefix}{response.text}{suffix}"
+            return (response_text,)
+        except requests.RequestException as e:
+            return ('Error！解析失败，请检查后重试！',)

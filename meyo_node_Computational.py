@@ -1,6 +1,7 @@
 import math
 import random
-
+import torch
+import numpy as np
 
 #======比较数值
 class CompareInt:
@@ -20,7 +21,8 @@ class CompareInt:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "compare_float_to_range"
     CATEGORY = "Meeeyo/Number"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def compare_float_to_range(self, input_float, range):
         try:
             if '-' in range:
@@ -54,7 +56,8 @@ class FloatToInteger:
     RETURN_TYPES = ("INT",)
     FUNCTION = "convert_float_to_integer"
     CATEGORY = "Meeeyo/Number"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def IS_CHANGED():
         return float("NaN")
 
@@ -89,7 +92,8 @@ class GenerateNumbers:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "generate_numbers"
     CATEGORY = "Meeeyo/Number"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def IS_CHANGED():
         return float("NaN")
 
@@ -134,7 +138,8 @@ class GetRandomIntegerInRange:
     RETURN_TYPES = ("INT", "STRING")
     FUNCTION = "get_random_integer_in_range"
     CATEGORY = "Meeeyo/Number"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def IS_CHANGED():
         return float("NaN")
 
@@ -147,3 +152,4 @@ class GetRandomIntegerInRange:
             return (random_int, str(random_int))
         except ValueError:
             return (0, "0")
+        

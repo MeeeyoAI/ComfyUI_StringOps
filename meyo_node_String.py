@@ -20,6 +20,7 @@ class SingleTextInput:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "process_input"
     CATEGORY = "Meeeyo/String"
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
     OUTPUT_NODE = False
 
     def process_input(self, text):
@@ -42,6 +43,7 @@ class MultiParamInputNode:
     RETURN_TYPES = ("STRING", "STRING", "INT", "INT")  # 返回两个字符串和两个整数
     FUNCTION = "process_inputs"
     CATEGORY = "Meeeyo/String"
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
     OUTPUT_NODE = False
 
     def process_inputs(self, text1, text2, int1, int2):
@@ -67,7 +69,8 @@ class AddPrefixSuffix:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "add_prefix_suffix"
     CATEGORY = "Meeeyo/String"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def add_prefix_suffix(self, input_string, prefix, suffix):
         return (f"{prefix}{input_string}{suffix}",)
 
@@ -89,7 +92,8 @@ class ExtractSubstring:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "extract_substring"
     CATEGORY = "Meeeyo/String"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def extract_substring(self, input_string, pattern):
         try:
             parts = pattern.split('|')
@@ -133,7 +137,8 @@ class ExtractSubstringByIndices:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "extract_substring_by_indices"
     CATEGORY = "Meeeyo/String"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def extract_substring_by_indices(self, input_string, indices, direction):
         try:
             if '-' in indices:
@@ -182,7 +187,8 @@ class SplitStringByDelimiter:
     RETURN_TYPES = ("STRING", "STRING")
     FUNCTION = "split_string_by_delimiter"
     CATEGORY = "Meeeyo/String"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def split_string_by_delimiter(self, input_string, delimiter):
         parts = input_string.split(delimiter, 1)
         if len(parts) == 2:
@@ -208,7 +214,8 @@ class ProcessString:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "process_string"
     CATEGORY = "Meeeyo/String"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def process_string(self, input_string, option):
         if option == "取数字":
             result = ''.join(re.findall(r'\d', input_string))
@@ -261,7 +268,8 @@ class ExtractBeforeAfter:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "extract_before_after"
     CATEGORY = "Meeeyo/String"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def extract_before_after(self, input_string, pattern, position, include_delimiter):
         if position == "保留最初之前":
             index = input_string.find(pattern)
@@ -306,7 +314,8 @@ class ReplaceNthOccurrence:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "replace_nth_occurrence"
     CATEGORY = "Meeeyo/String"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def replace_nth_occurrence(self, original_text, occurrence, search_str, replace_str):
         if occurrence == 0:
             result = original_text.replace(search_str, replace_str)
@@ -339,7 +348,8 @@ class ReplaceMultiple:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "replace_multiple"
     CATEGORY = "Meeeyo/String"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def replace_multiple(self, original_text, replacement_rule):
         try:
             search_str, replacements = replacement_rule.split('|')
@@ -375,7 +385,8 @@ class BatchReplaceStrings:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "batch_replace_strings"
     CATEGORY = "Meeeyo/String"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def batch_replace_strings(self, original_text, replacement_rules):
         rules = replacement_rules.strip().split('\n')
         for rule in rules:
@@ -409,7 +420,8 @@ class RandomLineFromText:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "get_random_line"
     CATEGORY = "Meeeyo/String"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def IS_CHANGED():
         return float("NaN")
 
@@ -438,7 +450,8 @@ class CheckSubstringPresence:
     RETURN_TYPES = ("INT",)
     FUNCTION = "check_substring_presence"
     CATEGORY = "Meeeyo/String"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def check_substring_presence(self, input_text, substring, mode):
         substrings = substring.split('|')
 
@@ -471,7 +484,8 @@ class AddPrefixSuffixToLines:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "add_prefix_suffix_to_lines"
     CATEGORY = "Meeeyo/String"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def add_prefix_suffix_to_lines(self, prefix_suffix, input_text):
         try:
             prefix, suffix = prefix_suffix.split('|')
@@ -500,7 +514,8 @@ class ExtractAndCombineLines:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "extract_and_combine_lines"
     CATEGORY = "Meeeyo/String"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def extract_and_combine_lines(self, input_text, line_indices):
         try:
             lines = input_text.splitlines()
@@ -542,7 +557,8 @@ class FilterLinesBySubstrings:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "filter_lines_by_substrings"
     CATEGORY = "Meeeyo/String"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def filter_lines_by_substrings(self, input_text, substrings, action):
         lines = input_text.splitlines()
         substring_list = substrings.split('|')
@@ -576,7 +592,8 @@ class FilterLinesByWordCount:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "filter_lines_by_word_count"
     CATEGORY = "Meeeyo/String"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def filter_lines_by_word_count(self, input_text, word_count_range):
         try:
             lines = input_text.splitlines()
@@ -613,7 +630,8 @@ class SplitAndExtractText:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "split_and_extract"
     CATEGORY = "Meeeyo/String"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def split_and_extract(self, input_text, delimiter, index, order, include_delimiter):
         try:
             if not delimiter:
@@ -666,7 +684,8 @@ class CountOccurrences:
     RETURN_TYPES = ("INT", "STRING")
     FUNCTION = "count_text_segments"
     CATEGORY = "Meeeyo/String"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def count_text_segments(self, input_text, char):
         try:
             if char == "\\n":
@@ -697,7 +716,8 @@ class ExtractLinesByIndex:
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING", "STRING")
     FUNCTION = "extract_lines_by_index"
     CATEGORY = "Meeeyo/String"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     OUTPUT_TYPES = ("STRING", "STRING", "STRING", "STRING", "STRING")
     OUTPUT_NAMES = ("文本1", "文本2", "文本3", "文本4", "文本5")
 
@@ -739,7 +759,8 @@ class ExtractSpecificLines:
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING", "STRING", "STRING")
     FUNCTION = "extract_specific_lines"
     CATEGORY = "Meeeyo/String"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def extract_specific_lines(self, input_text, line_indices, split_char):
         if not split_char or split_char == "\n":
             lines = input_text.split('\n')
@@ -784,7 +805,8 @@ class RemoveContentBetweenChars:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "remove_content_between_chars"
     CATEGORY = "Meeeyo/String"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def remove_content_between_chars(self, input_text, chars):
         try:
             if len(chars) == 3 and chars[1] == '|':
@@ -817,7 +839,8 @@ class ShuffleTextLines:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "shuffle_text_lines"
     CATEGORY = "Meeeyo/String"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def IS_CHANGED():
         return float("NaN")
 
@@ -862,7 +885,8 @@ class ConditionalTextOutput:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "conditional_text_output"
     CATEGORY = "Meeeyo/String"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def conditional_text_output(self, original_content, check_text, text_if_exists, text_if_not_exists):
         if not check_text:
             return ("",)
@@ -892,7 +916,8 @@ class TextConditionCheck:
     RETURN_TYPES = ("INT", "STRING")
     FUNCTION = "text_condition_check"
     CATEGORY = "Meeeyo/String"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def text_condition_check(self, original_content, length_condition, frequency_condition):
         length_valid = self.check_length_condition(original_content, length_condition)
         
@@ -939,7 +964,8 @@ class TextConcatenation:
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING", "STRING")
     FUNCTION = "text_concatenation"
     CATEGORY = "Meeeyo/String"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def text_concatenation(self, original_text, concatenation_rules, split_char):
         if split_char:
             original_lines = [line.strip() for line in original_text.split(split_char) if line.strip()]
@@ -979,7 +1005,8 @@ class ExtractSpecificData:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "extract_specific_data"
     CATEGORY = "Meeeyo/String"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def extract_specific_data(self, input_text, rule1, rule2):
         if rule1.strip():
             return self.extract_by_rule1(input_text, rule1)
@@ -1065,7 +1092,8 @@ class FindFirstLineContent:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "find_first_line_content"
     CATEGORY = "Meeeyo/String"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def find_first_line_content(self, input_text, target_char):
         try:
             lines = input_text.splitlines()

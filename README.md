@@ -15,7 +15,7 @@ Accurately extracts specified content from text using positional indexing and ke
  - **Integration with Excel：**
 Achieves deep integration with Excel, supporting read and write operations on paged and tabular data, facilitating batch completion of complex tasks and significantly improving efficiency.
 
-## Update Notes (2025-04-13):
+## Update Notes (2025-04-21):
 1.Added LoadAndAdjustImage node to load and resize images.
 
 2.Added SaveImagEX node to save images to a specified directory (also added an image output port).

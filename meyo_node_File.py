@@ -21,8 +21,10 @@ class LoadAndAdjustImage:
         return {
             "required": {
                 "image": (sorted(files), {"image_upload": True}),
-                "max_dimension": ("INT", {"default": 1024, "min": 0, "max": 4096, "step": 8}),
-                "size_option": (["Custom", "Small", "Medium", "Large"], {"default": "Custom"})
+                "max_dimension": ("INT", {"default": 0, "min": 0, "max": 4096, "step": 8}),
+                "size_option": (["No Change", "Custom", "Million Pixels", "Small", "Medium", "Large", 
+                                 "480P-H(vid 4:3)", "480P-V(vid 3:4)", "720P-H(vid 16:9)", "720P-V(vid 9:16)", "832×480", "480×832"], 
+                                {"default": "No Change"})
             }
         }
 
@@ -30,6 +32,7 @@ class LoadAndAdjustImage:
     RETURN_NAMES = ("image", "mask", "info")
     FUNCTION = "load_image"
     CATEGORY = "Meeeyo/File"
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
     
     def IS_CHANGED():
         return float("NaN")
@@ -41,7 +44,12 @@ class LoadAndAdjustImage:
         aspect_ratio = W / H
 
         def get_target_size():
-            if size_option == "Custom":
+            if size_option == "No Change":
+                # No resizing or cropping, just return the original size
+                return W, H
+            elif size_option == "Million Pixels":
+                return self._resize_to_million_pixels(W, H)
+            elif size_option == "Custom":
                 ratio = min(max_dimension / W, max_dimension / H)
                 return round(W * ratio), round(H * ratio)
             
@@ -60,9 +68,17 @@ class LoadAndAdjustImage:
                     (1600, 1120) if aspect_ratio >= 1.23 else
                     (1120, 1600) if aspect_ratio <= 0.82 else
                     (1600, 1600)
-                )
+                ),
+                "Million Pixels": self._resize_to_million_pixels(W, H),  # Million Pixels option
+                "480P-H(vid 4:3)": (640, 480),  # 480P-H, 640x480
+                "480P-V(vid 3:4)": (480, 640),  # 480P-V, 480x640
+                "720P-H(vid 16:9)": (1280, 720),  # 720P-H, 1280x720
+                "720P-V(vid 9:16)": (720, 1280),  # 720P-V, 720x1280
+                "832×480": (832, 480),  # 832x480
+                "480×832": (480, 832),  # 480x832
             }
             return size_options[size_option]
+        
         target_width, target_height = get_target_size()
         output_images = []
         output_masks = []
@@ -73,50 +89,83 @@ class LoadAndAdjustImage:
                 frame = frame.convert("RGBA")
             elif 'A' in frame.getbands():
                 frame = frame.convert("RGBA")
-            if size_option == "Custom":
-                ratio = min(target_width / W, target_height / H)
-                adjusted_width = round(W * ratio)
-                adjusted_height = round(H * ratio)
-                image_frame = frame.convert("RGB").resize((adjusted_width, adjusted_height), Image.Resampling.BILINEAR)
-            else:
+            
+            if size_option == "No Change":
+                # No resizing, just use the original frame
                 image_frame = frame.convert("RGB")
-                image_frame = ImageOps.fit(image_frame, (target_width, target_height), method=Image.Resampling.BILINEAR, centering=(0.5, 0.5))
+            else:
+                if size_option == "Custom" or size_option == "Million Pixels":
+                    ratio = min(target_width / W, target_height / H)
+                    adjusted_width = round(W * ratio)
+                    adjusted_height = round(H * ratio)
+                    image_frame = frame.convert("RGB").resize((adjusted_width, adjusted_height), Image.Resampling.BILINEAR)
+                else:
+                    image_frame = frame.convert("RGB")
+                    image_frame = ImageOps.fit(image_frame, (target_width, target_height), method=Image.Resampling.BILINEAR, centering=(0.5, 0.5))
+
             image_array = np.array(image_frame).astype(np.float32) / 255.0
             output_images.append(torch.from_numpy(image_array)[None,])
+
+            # Process the mask if available
             if 'A' in frame.getbands():
                 mask_frame = frame.getchannel('A')
-                if size_option == "Custom":
+                if size_option == "Custom" or size_option == "Million Pixels":
                     mask_frame = mask_frame.resize((adjusted_width, adjusted_height), Image.Resampling.BILINEAR)
                 else:
                     mask_frame = ImageOps.fit(mask_frame, (target_width, target_height), method=Image.Resampling.BILINEAR, centering=(0.5, 0.5))
                 mask = np.array(mask_frame).astype(np.float32) / 255.0
                 mask = 1. - mask
             else:
-                if size_option == "Custom":
+                if size_option == "Custom" or size_option == "Million Pixels":
                     mask = np.zeros((adjusted_height, adjusted_width), dtype=np.float32)
                 else:
                     mask = np.zeros((target_height, target_width), dtype=np.float32)
             output_masks.append(torch.from_numpy(mask).unsqueeze(0))
+        
         output_image = torch.cat(output_images, dim=0) if len(output_images) > 1 else output_images[0]
         output_mask = torch.cat(output_masks, dim=0) if len(output_masks) > 1 else output_masks[0]
         info = f"Image Path: {image_path}\nOriginal Size: {W}x{H}\nAdjusted Size: {target_width}x{target_height}"
         return (output_image, output_mask, info)
+
     @classmethod
     def VALIDATE_INPUTS(s, image):
         if not folder_paths.exists_annotated_filepath(image):
             return f"Invalid image file: {image}"
         return True
 
+    def _resize_to_million_pixels(self, W, H):
+        # Calculate the aspect ratio of the original image
+        aspect_ratio = W / H
+        target_area = 1000000  # 1 million pixels
+        
+        # Calculate the new width and height while maintaining the aspect ratio
+        if aspect_ratio > 1:  # Landscape
+            width = int(np.sqrt(target_area * aspect_ratio))
+            height = int(target_area / width)
+        else:  # Portrait
+            height = int(np.sqrt(target_area / aspect_ratio))
+            width = int(target_area / height)
 
-#======重置图像尺寸
+        # Round width and height to the nearest multiple of 8
+        width = (width + 7) // 8 * 8
+        height = (height + 7) // 8 * 8
+        
+        return width, height
+
+
+
+#======重置图像
 class ImageAdjuster:
     @classmethod
     def INPUT_TYPES(s):
         return {
             "required": {
                 "image": ("IMAGE",),
-                "max_dimension": ("INT", {"default": 1024, "min": 0, "max": 4096, "step": 8}),
-                "size_option": (["Custom", "Small", "Medium", "Large"], {"default": "Custom"}),
+                "max_dimension": ("INT", {"default": 0, "min": 0, "max": 4096, "step": 8}),
+                "size_option": ([
+                    "Custom", "Million Pixels", "Small", "Medium", "Large", 
+                    "480P-H(vid 4:3)", "480P-V(vid 3:4)", "720P-H(vid 16:9)", "720P-V(vid 9:16)", "832×480", "480×832"], 
+                    {"default": "Million Pixels"})
             }
         }
 
@@ -124,6 +173,7 @@ class ImageAdjuster:
     RETURN_NAMES = ("image", "width", "height")
     FUNCTION = "process_image"
     CATEGORY = "Meeeyo/File"
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
     
     def IS_CHANGED():
         return float("NaN")
@@ -160,7 +210,14 @@ class ImageAdjuster:
                         (1600, 1120) if aspect_ratio >= 1.23 else
                         (1120, 1600) if aspect_ratio <= 0.82 else
                         (1600, 1600)
-                    )
+                    ),
+                    "Million Pixels": self._resize_to_million_pixels(W, H),  # Million Pixels option
+                    "480P-H(vid 4:3)": (640, 480),  # 480P-H, 640x480
+                    "480P-V(vid 3:4)": (480, 640),  # 480P-V, 480x640
+                    "720P-H(vid 16:9)": (1280, 720),  # 720P-H, 1280x720
+                    "720P-V(vid 9:16)": (720, 1280),  # 720P-V, 720x1280
+                    "832×480": (832, 480),  # 832x480
+                    "480×832": (480, 832),  # 480x832
                 }
 
                 target_width, target_height = size_options[size_option]
@@ -184,6 +241,73 @@ class ImageAdjuster:
         else:
             return (output_image, adjusted_width, adjusted_height)
 
+    def _resize_to_million_pixels(self, W, H):
+        # Calculate the aspect ratio of the original image
+        aspect_ratio = W / H
+        target_area = 1000000  # 1 million pixels
+        
+        # Calculate the new width and height while maintaining the aspect ratio
+        if aspect_ratio > 1:  # Landscape
+            width = int(np.sqrt(target_area * aspect_ratio))
+            height = int(target_area / width)
+        else:  # Portrait
+            height = int(np.sqrt(target_area / aspect_ratio))
+            width = int(target_area / height)
+
+        # Round width and height to the nearest multiple of 8
+        width = (width + 7) // 8 * 8
+        height = (height + 7) // 8 * 8
+        
+        return width, height
+
+
+
+#======裁剪图像
+class CustomCrop:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "image": ("IMAGE",),
+                "width": ("INT", {"default": 768, "min": 0, "max": 4096, "step": 8}),
+                "height": ("INT", {"default": 768, "min": 0, "max": 4096, "step": 8}),
+            }
+        }
+
+    RETURN_TYPES = ("IMAGE", "INT", "INT")
+    RETURN_NAMES = ("image", "width", "height")
+    FUNCTION = "process_image"
+    CATEGORY = "Meeeyo/File"
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
+    def IS_CHANGED(self):
+        return float("NaN")
+
+    def process_image(self, image, width=768, height=768):
+        input_image = Image.fromarray((image.squeeze(0).numpy() * 255).astype(np.uint8))
+        W, H = input_image.size
+
+        processed_images = []
+
+        for frame in [input_image]:
+            frame = ImageOps.exif_transpose(frame)
+
+            if frame.mode == 'P':
+                frame = frame.convert("RGBA")
+            elif 'A' in frame.getbands():
+                frame = frame.convert("RGBA")
+
+            processed_image = frame.convert("RGB")
+            processed_image = ImageOps.fit(processed_image, (width, height), method=Image.Resampling.BILINEAR, centering=(0.5, 0.5))
+
+            processed_image = np.array(processed_image).astype(np.float32) / 255.0
+            processed_image = torch.from_numpy(processed_image)[None,]
+            processed_images.append(processed_image)
+
+        output_image = torch.cat(processed_images, dim=0) if len(processed_images) > 1 else processed_images[0]
+
+        return (output_image, width, height)
+
 
 #======保存图像
 class SaveImagEX:
@@ -206,6 +330,7 @@ class SaveImagEX:
     FUNCTION = "save_image"
     OUTPUT_NODE = True
     CATEGORY = "Meeeyo/File"
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
     
     def IS_CHANGED():
         return float("NaN")
@@ -274,6 +399,7 @@ class FileCopyCutNode:
     RETURN_NAMES = ("result",)
     FUNCTION = "copy_cut_file"
     CATEGORY = "Meeeyo/File"
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
     
     def IS_CHANGED():
         return float("NaN")
@@ -301,43 +427,6 @@ class FileCopyCutNode:
         return (result,)
 
 
-#======读取页面
-class ReadWebNode:
-    def __init__(self):
-        pass
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "url": ("STRING", {"default": "https://", "multiline": False}),
-            },
-            "optional": {
-                "any": ("*",),  # 可选触发输入
-            },
-        }
-
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("output",)
-    FUNCTION = "read_web"
-    CATEGORY = "Meeeyo/File"
-    
-    def IS_CHANGED():
-        return float("NaN")
-
-    def read_web(self, url, any=None):
-        try:
-            response = requests.get(url)
-            encoding = chardet.detect(response.content)['encoding']
-            response.encoding = encoding or 'ISO-8859-1'
-            if response.status_code == 200:
-                return (response.text,)
-            else:
-                return (f"Failed to retrieve webpage. Status code: {response.status_code}",)
-        except Exception as e:
-            return (f"Error: {str(e)}",)
-
-
 #======文件路径和后缀统计
 class FileListAndSuffix:
     def __init__(self):
@@ -356,7 +445,8 @@ class FileListAndSuffix:
     RETURN_TYPES = ("STRING", "INT", "LIST")
     FUNCTION = "file_list_and_suffix"
     CATEGORY = "Meeeyo/File"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def IS_CHANGED():
         return float("NaN")
 
@@ -396,7 +486,8 @@ class ReadExcelData:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "read_excel_data"
     CATEGORY = "Meeeyo/File"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def IS_CHANGED():
         return float("NaN")
 
@@ -455,7 +546,8 @@ class WriteExcelData:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "write_excel_data"
     CATEGORY = "Meeeyo/File"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def IS_CHANGED():
         return float("NaN")
 
@@ -530,7 +622,8 @@ class FindExcelData:
     RETURN_TYPES = ("STRING", "INT", "INT")
     FUNCTION = "find_excel_data"
     CATEGORY = "Meeeyo/File"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def IS_CHANGED():
         return float("NaN")
 
@@ -591,7 +684,8 @@ class ReadExcelRowOrColumnDiff:
     RETURN_TYPES = ("INT",)
     FUNCTION = "read_excel_row_or_column_diff"
     CATEGORY = "Meeeyo/File"
-
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
     def IS_CHANGED():
         return float("NaN")
 
