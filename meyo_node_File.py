@@ -428,12 +428,14 @@ class FileCopyCutNode:
 
 
 #======清理文件
+COMFYUI_OUTPUT_DIR = "output"
+
 class FileDeleteNode:
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "target_paths": ("STRING", {"default": "", "multiline": True}),
+                "items_to_delete": ("STRING", {"default": "33.png\ncs1/01.png\ncs1", "multiline": True}),
             },
             "optional": {
                 "any": ("*",),
@@ -446,52 +448,66 @@ class FileDeleteNode:
     CATEGORY = "Meeeyo/File"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
     
-    def delete_files(self, target_paths, **kwargs):
-        result = "执行失败"
-        deleted_count = 0
-        total_count = 0
+    def IS_CHANGED(self):
+        return float("NaN")
+
+    def delete_files(self, items_to_delete, **kwargs):
+        result = "执行成功: 所有指定项已从output目录删除"
         error_messages = []
-        
-        try:
-            # 拆分多行路径并去空
-            paths = [path.strip() for path in target_paths.split('\n') if path.strip()]
-            total_count = len(paths)
+
+        # 确保只操作COMFYUI_OUTPUT_DIR目录下的内容
+        base_output_dir = Path.cwd() / COMFYUI_OUTPUT_DIR
+
+        # 处理多行文本输入
+        items = items_to_delete.strip().split('\n')
+
+        for item in items:
+            item = item.strip()
+            if not item:
+                continue
             
-            if total_count == 0:
-                raise Exception("未提供有效的文件路径")
-                
-            # 遍历所有路径进行删除
-            for path in paths:
-                if not os.path.exists(path):
-                    error_messages.append(f"路径不存在: {path}")
-                    continue
-                    
+            # 检查是否有特殊命令[DeleteAll]
+            if item == "[DeleteAll]":
                 try:
-                    # 删除文件或文件夹
-                    if os.path.isfile(path):
-                        os.remove(path)
-                    else:
-                        shutil.rmtree(path)
-                    deleted_count += 1
+                    # 删除output目录下所有内容
+                    for file_or_dir in base_output_dir.glob('*'):
+                        if file_or_dir.is_file() or file_or_dir.is_symlink():
+                            file_or_dir.unlink()
+                        elif file_or_dir.is_dir():
+                            shutil.rmtree(file_or_dir)
+                    continue
                 except Exception as e:
-                    error_messages.append(f"删除失败: {path} - {str(e)}")
+                    error_messages.append(f"从output目录删除全部失败: {str(e)}")
+                    continue
             
-            # 构建结果字符串
-            result_parts = []
-            if deleted_count > 0:
-                result_parts.append(f"成功删除 {deleted_count}/{total_count} 个路径")
+            # 构建完整路径
+            target_path = base_output_dir / item
             
-            if error_messages:
-                result_parts.append("\n错误详情:")
-                result_parts.extend(error_messages)
+            # 检查是否位于output目录下
+            try:
+                target_path.relative_to(base_output_dir)
+            except ValueError:
+                error_messages.append(f"{item} 不在output目录范围内，无法删除")
+                continue
             
-            result = "\n".join(result_parts)
+            # 检查文件/目录是否存在
+            if not target_path.exists():
+                error_messages.append(f"在output目录下找不到 {item}")
+                continue
             
-        except Exception as e:
-            result = f"执行失败: {str(e)}"
-            
+            # 删除操作
+            try:
+                if target_path.is_file() or target_path.is_symlink():
+                    target_path.unlink()
+                elif target_path.is_dir():
+                    shutil.rmtree(target_path)
+            except Exception as e:
+                error_messages.append(f"从output目录删除 {item} 失败: {str(e)}")
+        
+        # 汇总结果
+        if error_messages:
+            result = "部分执行失败:\n" + "\n".join(error_messages)
         return (result,)
-    
 
 
 #======文件路径和后缀统计
