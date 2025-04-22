@@ -15,6 +15,7 @@ NODE_CLASS_MAPPINGS = {
 
     #字符串处理：meyo_node_String
     "SingleTextInput": SingleTextInput,  
+    "TextConcatenator": TextConcatenator,  
     "MultiParamInputNode": MultiParamInputNode,
     "AddPrefixSuffix": AddPrefixSuffix,
     "ExtractSubstring": ExtractSubstring,
@@ -42,6 +43,7 @@ NODE_CLASS_MAPPINGS = {
     "TextConcatenation": TextConcatenation,
     "ExtractSpecificData": ExtractSpecificData,
     "FindFirstLineContent": FindFirstLineContent,
+    "GenerateVideoPrompt": GenerateVideoPrompt,
 
     #文件处理：meyo_node_File
     "LoadAndAdjustImage": LoadAndAdjustImage,
@@ -74,6 +76,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
 
    #字符串处理：meyo_node_String
    "SingleTextInput": "文本输入(meeeyo.com)",  
+   "TextConcatenator": "文本拼接(meeeyo.com)",  
    "MultiParamInputNode": "多参数输入(meeeyo.com)",
    "AddPrefixSuffix": "添加前后缀(meeeyo.com)",
    "ExtractSubstring": "提取标签之间(meeeyo.com)",
@@ -101,6 +104,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
    "TextConcatenation": "文本组合(meeeyo.com)",
    "ExtractSpecificData": "提取多层指定数据(meeeyo.com)",
    "FindFirstLineContent": "指定字符行参数(meeeyo.com)",
+   "GenerateVideoPrompt": "视频指令词模板(meeeyo.com)",
 
    #文件处理：meyo_node_File
    "LoadAndAdjustImage": "加载重置图像(meeeyo.com)",
