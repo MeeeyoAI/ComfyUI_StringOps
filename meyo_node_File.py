@@ -155,6 +155,10 @@ class LoadAndAdjustImage:
 
 
 #======重置图像
+import torch
+import numpy as np
+from PIL import Image, ImageOps
+
 class ImageAdjuster:
     @classmethod
     def INPUT_TYPES(s):
@@ -165,7 +169,8 @@ class ImageAdjuster:
                 "size_option": ([
                     "Custom", "Million Pixels", "Small", "Medium", "Large", 
                     "480P-H(vid 4:3)", "480P-V(vid 3:4)", "720P-H(vid 16:9)", "720P-V(vid 9:16)", "832×480", "480×832"], 
-                    {"default": "Million Pixels"})
+                    {"default": "Million Pixels"}
+                )
             }
         }
 
@@ -179,18 +184,23 @@ class ImageAdjuster:
         return float("NaN")
 
     def process_image(self, image, max_dimension=1024, size_option="Custom"):
-        input_image = Image.fromarray((image.squeeze(0).numpy() * 255).astype(np.uint8))
-        W, H = input_image.size
-
+        batch_size = image.shape[0]
         processed_images = []
+        widths = []
+        heights = []
 
-        for frame in [input_image]:
-            frame = ImageOps.exif_transpose(frame)
+        for i in range(batch_size):
+            current_image = image[i]
+            input_pil_image = Image.fromarray((current_image.numpy() * 255).astype(np.uint8))
+            W, H = input_pil_image.size
 
-            if frame.mode == 'P':
-                frame = frame.convert("RGBA")
-            elif 'A' in frame.getbands():
-                frame = frame.convert("RGBA")
+            processed_image_pil = input_pil_image.copy()
+            processed_image_pil = ImageOps.exif_transpose(processed_image_pil)
+
+            if processed_image_pil.mode == 'P':
+                processed_image_pil = processed_image_pil.convert("RGBA")
+            elif 'A' in processed_image_pil.getbands():
+                processed_image_pil = processed_image_pil.convert("RGBA")
 
             if size_option != "Custom":
                 aspect_ratio = W / H
@@ -211,50 +221,55 @@ class ImageAdjuster:
                         (1120, 1600) if aspect_ratio <= 0.82 else
                         (1600, 1600)
                     ),
-                    "Million Pixels": self._resize_to_million_pixels(W, H),  # Million Pixels option
-                    "480P-H(vid 4:3)": (640, 480),  # 480P-H, 640x480
-                    "480P-V(vid 3:4)": (480, 640),  # 480P-V, 480x640
-                    "720P-H(vid 16:9)": (1280, 720),  # 720P-H, 1280x720
-                    "720P-V(vid 9:16)": (720, 1280),  # 720P-V, 720x1280
-                    "832×480": (832, 480),  # 832x480
-                    "480×832": (480, 832),  # 480x832
+                    "Million Pixels": self._resize_to_million_pixels(W, H),
+                    "480P-H(vid 4:3)": (640, 480),
+                    "480P-V(vid 3:4)": (480, 640),
+                    "720P-H(vid 16:9)": (1280, 720),
+                    "720P-V(vid 9:16)": (720, 1280),
+                    "832×480": (832, 480),
+                    "480×832": (480, 832)
                 }
 
                 target_width, target_height = size_options[size_option]
-                processed_image = frame.convert("RGB")
-                processed_image = ImageOps.fit(processed_image, (target_width, target_height), method=Image.Resampling.BILINEAR, centering=(0.5, 0.5))
+                processed_image_pil = processed_image_pil.convert("RGB")
+                processed_image_pil = ImageOps.fit(processed_image_pil, (target_width, target_height), method=Image.Resampling.BILINEAR, centering=(0.5, 0.5))
             else:
                 ratio = min(max_dimension / W, max_dimension / H)
                 adjusted_width = round(W * ratio)
                 adjusted_height = round(H * ratio)
 
-                processed_image = frame.convert("RGB")
-                processed_image = processed_image.resize((adjusted_width, adjusted_height), Image.Resampling.BILINEAR)
+                processed_image_pil = processed_image_pil.convert("RGB")
+                processed_image_pil = processed_image_pil.resize((adjusted_width, adjusted_height), Image.Resampling.BILINEAR)
 
-            processed_image = np.array(processed_image).astype(np.float32) / 255.0
-            processed_image = torch.from_numpy(processed_image)[None,]
+            processed_image = np.array(processed_image_pil).astype(np.float32) / 255.0
+            processed_image = torch.from_numpy(processed_image)
             processed_images.append(processed_image)
 
-        output_image = torch.cat(processed_images, dim=0) if len(processed_images) > 1 else processed_images[0]
-        if size_option != "Custom":
-            return (output_image, target_width, target_height)
+            if size_option != "Custom":
+                widths.append(target_width)
+                heights.append(target_height)
+            else:
+                widths.append(adjusted_width)
+                heights.append(adjusted_height)
+
+        output_image = torch.stack(processed_images)
+        
+        if all(w == widths[0] for w in widths) and all(h == heights[0] for h in heights):
+            return (output_image, widths[0], heights[0])
         else:
-            return (output_image, adjusted_width, adjusted_height)
+            return (output_image, widths[0], heights[0])
 
     def _resize_to_million_pixels(self, W, H):
-        # Calculate the aspect ratio of the original image
         aspect_ratio = W / H
-        target_area = 1000000  # 1 million pixels
+        target_area = 1000000
         
-        # Calculate the new width and height while maintaining the aspect ratio
-        if aspect_ratio > 1:  # Landscape
+        if aspect_ratio > 1:
             width = int(np.sqrt(target_area * aspect_ratio))
             height = int(target_area / width)
-        else:  # Portrait
+        else:
             height = int(np.sqrt(target_area / aspect_ratio))
             width = int(target_area / height)
 
-        # Round width and height to the nearest multiple of 8
         width = (width + 7) // 8 * 8
         height = (height + 7) // 8 * 8
         
