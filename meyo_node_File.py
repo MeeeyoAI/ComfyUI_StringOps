@@ -161,10 +161,6 @@ class LoadAndAdjustImage:
 
 
 #======重置图像
-import torch
-import numpy as np
-from PIL import Image, ImageOps
-
 class ImageAdjuster:
     @classmethod
     def INPUT_TYPES(s):
