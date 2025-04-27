@@ -113,6 +113,8 @@ class TextConcatenator:
         except Exception as e:
             return (f"Error: {str(e)}",)
         
+<<<<<<< HEAD
+=======
 
 #======文本拼接
 class TextConcatenator:
@@ -159,6 +161,7 @@ class TextConcatenator:
         except Exception as e:
             return (f"Error: {str(e)}",)
         
+>>>>>>> 5ca49a6a21427c2123b3fa353c9270990af0b82a
 
 #======多参数输入
 class MultiParamInputNode:
@@ -176,6 +179,16 @@ class MultiParamInputNode:
     RETURN_TYPES = ("STRING", "STRING", "INT", "INT")  # 返回两个字符串和两个整数
     FUNCTION = "process_inputs"
     OUTPUT_NODE = False
+<<<<<<< HEAD
+    CATEGORY = "Meeeyo/String"
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
+    def IS_CHANGED():
+        return float("NaN")
+    
+    def process_inputs(self, text1, text2, int1, int2):
+        return (text1, text2, int1, int2)
+=======
     CATEGORY = "Meeeyo/String"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
     
@@ -213,6 +226,32 @@ class NumberExtractor:
     OUTPUT_NODE = False
 
 >>>>>>> b7ed81e9e5c54e5f2fa5775e72a7718ed2b72f70
+    def process_inputs(self, int1, int2):
+        return (int1, int2)
+
+>>>>>>> 5ca49a6a21427c2123b3fa353c9270990af0b82a
+
+
+#======整数参数
+class NumberExtractor:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "int1": ("INT", {"default": 0, "min": -1000000, "max": 1000000}),  # 第一个整数输入框
+                "int2": ("INT", {"default": 0, "min": -1000000, "max": 1000000}),  # 第二个整数输入框
+            }
+        }
+
+    RETURN_TYPES = ("INT", "INT")  # 返回两个整数
+    FUNCTION = "process_inputs"
+    OUTPUT_NODE = False
+    CATEGORY = "Meeeyo/String"
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
+    def IS_CHANGED():
+        return float("NaN")
+    
     def process_inputs(self, int1, int2):
         return (int1, int2)
 
@@ -1418,7 +1457,13 @@ class GenerateVideoPrompt:
         return float("NaN")
     
 =======
+<<<<<<< HEAD
+    def IS_CHANGED():
+        return float("NaN")
+    
+=======
 >>>>>>> b7ed81e9e5c54e5f2fa5775e72a7718ed2b72f70
+>>>>>>> 5ca49a6a21427c2123b3fa353c9270990af0b82a
     def generate_prompt(self, input_text, mode):
         try:
             if mode == "原文本":

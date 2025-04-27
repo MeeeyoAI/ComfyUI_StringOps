@@ -24,16 +24,22 @@ NODE_CLASS_MAPPINGS = {
     #字符串处理：meyo_node_String
     "SingleTextInput": SingleTextInput,  
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 5ca49a6a21427c2123b3fa353c9270990af0b82a
     "TextToList": TextToList,  
     "TextConcatenator": TextConcatenator,  
     "MultiParamInputNode": MultiParamInputNode,
     "NumberExtractor": NumberExtractor, 
+<<<<<<< HEAD
+=======
 =======
     "TextConcatenator": TextConcatenator,  
     "MultiParamInputNode": MultiParamInputNode,
     "NumberExtractor": NumberExtractor, 
 
 >>>>>>> b7ed81e9e5c54e5f2fa5775e72a7718ed2b72f70
+>>>>>>> 5ca49a6a21427c2123b3fa353c9270990af0b82a
     "AddPrefixSuffix": AddPrefixSuffix,
     "ExtractSubstring": ExtractSubstring,
     "ExtractSubstringByIndices": ExtractSubstringByIndices,
@@ -96,6 +102,9 @@ NODE_DISPLAY_NAME_MAPPINGS = {
 
    #字符串处理：meyo_node_String
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 5ca49a6a21427c2123b3fa353c9270990af0b82a
    "SingleTextInput": "文本输入🐠meeeyo.com",
    "TextToList": "文本到列表🐠meeeyo.com",
    "TextConcatenator": "文本拼接🐠meeeyo.com",  
@@ -129,6 +138,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
    "ExtractSpecificData": "提取多层指定数据🐠meeeyo.com",
    "FindFirstLineContent": "指定字符行参数🐠meeeyo.com",
    "GenerateVideoPrompt": "视频指令词模板🐠meeeyo.com",
+<<<<<<< HEAD
+=======
 =======
    "SingleTextInput": "文本输入(meeeyo.com)",  
    "TextConcatenator": "文本拼接(meeeyo.com)",  
@@ -163,6 +174,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
    "FindFirstLineContent": "指定字符行参数(meeeyo.com)",
    "GenerateVideoPrompt": "视频指令词模板(meeeyo.com)",
 >>>>>>> b7ed81e9e5c54e5f2fa5775e72a7718ed2b72f70
+>>>>>>> 5ca49a6a21427c2123b3fa353c9270990af0b82a
 
    #文件处理：meyo_node_File
    "LoadAndAdjustImage": "加载重置图像🐠meeeyo.com",
