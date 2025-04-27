@@ -5,6 +5,7 @@ import requests
 import string
 import math
 import re
+from . import AnyType, any_typ
 
 
 #======文本输入
@@ -19,13 +20,99 @@ class SingleTextInput:
 
     RETURN_TYPES = ("STRING",)
     FUNCTION = "process_input"
+    OUTPUT_NODE = False
     CATEGORY = "Meeeyo/String"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    OUTPUT_NODE = False
-
+    
+    def IS_CHANGED():
+        return float("NaN")
+    
     def process_input(self, text):
         return (text,)
+
+
+#======文本到列表
+class TextToList:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "text": ("STRING", {"multiline": True, "default": ""}),
+                "delimiter": ("STRING", {"default": ""}),
+            }
+        }
+
+    RETURN_TYPES = ("STRING",)
+    FUNCTION = "split_text"
+    OUTPUT_IS_LIST = (True,)
+    CATEGORY = "Meeeyo/String"
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
     
+    def IS_CHANGED():
+        return float("NaN")
+    
+    def split_text(self, text, delimiter):
+        if not delimiter:
+            parts = text.split('\n')
+        else:
+            parts = text.split(delimiter)
+        parts = [part.strip() for part in parts if part.strip()]
+        if not parts:
+            return ([],)
+        return (parts,)
+
+
+#======文本拼接
+class TextConcatenator:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "text1": ("STRING", {"multiline": True, "default": ""}),
+                "text2": ("STRING", {"multiline": True, "default": ""}),
+                "text3": ("STRING", {"multiline": True, "default": ""}),
+                "text4": ("STRING", {"multiline": True, "default": ""}),
+                "combine_order": ("STRING", {"default": ""}),
+                "separator": ("STRING", {"default": ","})  # 添加分隔符输入框，默认为逗号
+            },
+        }
+
+    RETURN_TYPES = ("STRING",)
+    FUNCTION = "combine_texts"
+    CATEGORY = "Meeeyo/String"
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
+    def IS_CHANGED():
+        return float("NaN")
+    
+    def combine_texts(self, text1, text2, text3, text4, combine_order, separator):
+        try:
+            text_map = {
+                "1": text1,
+                "2": text2,
+                "3": text3,
+                "4": text4
+            }
+            if not combine_order:
+                combine_order = "1+2+3+4"
+            parts = combine_order.split("+")
+            valid_parts = []
+            for part in parts:
+                if part in text_map:
+                    valid_parts.append(part)
+                else:
+                    return (f"Error: Invalid input '{part}' in combine_order. Valid options are 1, 2, 3, 4.",)
+            non_empty_texts = [text_map[part] for part in valid_parts if text_map[part]]
+            
+            # 特殊处理换行符
+            if separator == '\\n':
+                separator = '\n'
+            
+            result = separator.join(non_empty_texts)  # 使用自定义分隔符
+            return (result,)
+        except Exception as e:
+            return (f"Error: {str(e)}",)
+        
 
 #======多参数输入
 class MultiParamInputNode:
@@ -42,12 +129,40 @@ class MultiParamInputNode:
 
     RETURN_TYPES = ("STRING", "STRING", "INT", "INT")  # 返回两个字符串和两个整数
     FUNCTION = "process_inputs"
+    OUTPUT_NODE = False
     CATEGORY = "Meeeyo/String"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    OUTPUT_NODE = False
-
+    
+    def IS_CHANGED():
+        return float("NaN")
+    
     def process_inputs(self, text1, text2, int1, int2):
         return (text1, text2, int1, int2)
+
+
+#======整数参数
+class NumberExtractor:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "int1": ("INT", {"default": 0, "min": -1000000, "max": 1000000}),  # 第一个整数输入框
+                "int2": ("INT", {"default": 0, "min": -1000000, "max": 1000000}),  # 第二个整数输入框
+            }
+        }
+
+    RETURN_TYPES = ("INT", "INT")  # 返回两个整数
+    FUNCTION = "process_inputs"
+    OUTPUT_NODE = False
+    CATEGORY = "Meeeyo/String"
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
+    def IS_CHANGED():
+        return float("NaN")
+    
+    def process_inputs(self, int1, int2):
+        return (int1, int2)
+
 
 
 #======添加前后缀
@@ -71,6 +186,9 @@ class AddPrefixSuffix:
     CATEGORY = "Meeeyo/String"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
     
+    def IS_CHANGED():
+        return float("NaN")
+    
     def add_prefix_suffix(self, input_string, prefix, suffix):
         return (f"{prefix}{input_string}{suffix}",)
 
@@ -93,6 +211,9 @@ class ExtractSubstring:
     FUNCTION = "extract_substring"
     CATEGORY = "Meeeyo/String"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
+    def IS_CHANGED():
+        return float("NaN")
     
     def extract_substring(self, input_string, pattern):
         try:
@@ -138,6 +259,9 @@ class ExtractSubstringByIndices:
     FUNCTION = "extract_substring_by_indices"
     CATEGORY = "Meeeyo/String"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
+    def IS_CHANGED():
+        return float("NaN")
     
     def extract_substring_by_indices(self, input_string, indices, direction):
         try:
@@ -189,6 +313,9 @@ class SplitStringByDelimiter:
     CATEGORY = "Meeeyo/String"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
     
+    def IS_CHANGED():
+        return float("NaN")
+    
     def split_string_by_delimiter(self, input_string, delimiter):
         parts = input_string.split(delimiter, 1)
         if len(parts) == 2:
@@ -215,6 +342,9 @@ class ProcessString:
     FUNCTION = "process_string"
     CATEGORY = "Meeeyo/String"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
+    def IS_CHANGED():
+        return float("NaN")
     
     def process_string(self, input_string, option):
         if option == "取数字":
@@ -270,6 +400,9 @@ class ExtractBeforeAfter:
     CATEGORY = "Meeeyo/String"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
     
+    def IS_CHANGED():
+        return float("NaN")
+    
     def extract_before_after(self, input_string, pattern, position, include_delimiter):
         if position == "保留最初之前":
             index = input_string.find(pattern)
@@ -294,6 +427,42 @@ class ExtractBeforeAfter:
         return ("",)
 
 
+#======简易文本替换
+class SimpleTextReplacer:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "input_string": ("STRING", {"multiline": True, "default": "", "forceInput": True}),
+                "find_text": ("STRING", {"default": ""}),
+                "replace_text": ("STRING", {"default": ""})
+            },
+        }
+
+    RETURN_TYPES = ("STRING",)
+    FUNCTION = "replace_text"
+    CATEGORY = "Meeeyo/String"
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
+    def IS_CHANGED():
+        return float("NaN")
+    
+    def replace_text(self, input_string, find_text, replace_text):
+        try:
+            # 如果find_text为空，则不进行替换
+            if not find_text:
+                return (input_string,)
+            
+            # 如果replace_text是\n，则替换成换行符
+            if replace_text == '\\n':
+                replace_text = '\n'
+            
+            result = input_string.replace(find_text, replace_text)
+            return (result,)
+        except Exception as e:
+            return (f"Error: {str(e)}",)
+        
+
 #======替换第n次出现
 class ReplaceNthOccurrence:
     def __init__(self):
@@ -315,6 +484,9 @@ class ReplaceNthOccurrence:
     FUNCTION = "replace_nth_occurrence"
     CATEGORY = "Meeeyo/String"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
+    def IS_CHANGED():
+        return float("NaN")
     
     def replace_nth_occurrence(self, original_text, occurrence, search_str, replace_str):
         if occurrence == 0:
@@ -349,6 +521,9 @@ class ReplaceMultiple:
     FUNCTION = "replace_multiple"
     CATEGORY = "Meeeyo/String"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
+    def IS_CHANGED():
+        return float("NaN")
     
     def replace_multiple(self, original_text, replacement_rule):
         try:
@@ -387,6 +562,9 @@ class BatchReplaceStrings:
     CATEGORY = "Meeeyo/String"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
     
+    def IS_CHANGED():
+        return float("NaN")
+    
     def batch_replace_strings(self, original_text, replacement_rules):
         rules = replacement_rules.strip().split('\n')
         for rule in rules:
@@ -414,7 +592,7 @@ class RandomLineFromText:
             "required": {
                 "input_text": ("STRING", {"multiline": True, "default": ""}), 
             },
-            "optional": {},
+            "optional": {"any": (any_typ,)} 
         }
 
     RETURN_TYPES = ("STRING",)
@@ -424,12 +602,17 @@ class RandomLineFromText:
     
     def IS_CHANGED():
         return float("NaN")
+    
+    def IS_CHANGED():
+        return float("NaN")
 
-    def get_random_line(self, input_text):
+    def get_random_line(self, input_text, any=None):
         lines = input_text.strip().splitlines()
         if not lines:
             return ("",)  
         return (random.choice(lines),)
+
+
 
 #======判断是否包含字符
 class CheckSubstringPresence:
@@ -451,6 +634,9 @@ class CheckSubstringPresence:
     FUNCTION = "check_substring_presence"
     CATEGORY = "Meeeyo/String"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
+    def IS_CHANGED():
+        return float("NaN")
     
     def check_substring_presence(self, input_text, substring, mode):
         substrings = substring.split('|')
@@ -486,6 +672,9 @@ class AddPrefixSuffixToLines:
     CATEGORY = "Meeeyo/String"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
     
+    def IS_CHANGED():
+        return float("NaN")
+    
     def add_prefix_suffix_to_lines(self, prefix_suffix, input_text):
         try:
             prefix, suffix = prefix_suffix.split('|')
@@ -515,6 +704,9 @@ class ExtractAndCombineLines:
     FUNCTION = "extract_and_combine_lines"
     CATEGORY = "Meeeyo/String"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
+    def IS_CHANGED():
+        return float("NaN")
     
     def extract_and_combine_lines(self, input_text, line_indices):
         try:
@@ -559,6 +751,9 @@ class FilterLinesBySubstrings:
     CATEGORY = "Meeeyo/String"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
     
+    def IS_CHANGED():
+        return float("NaN")
+    
     def filter_lines_by_substrings(self, input_text, substrings, action):
         lines = input_text.splitlines()
         substring_list = substrings.split('|')
@@ -593,6 +788,9 @@ class FilterLinesByWordCount:
     FUNCTION = "filter_lines_by_word_count"
     CATEGORY = "Meeeyo/String"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
+    def IS_CHANGED():
+        return float("NaN")
     
     def filter_lines_by_word_count(self, input_text, word_count_range):
         try:
@@ -631,6 +829,9 @@ class SplitAndExtractText:
     FUNCTION = "split_and_extract"
     CATEGORY = "Meeeyo/String"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
+    def IS_CHANGED():
+        return float("NaN")
     
     def split_and_extract(self, input_text, delimiter, index, order, include_delimiter):
         try:
@@ -686,6 +887,9 @@ class CountOccurrences:
     CATEGORY = "Meeeyo/String"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
     
+    def IS_CHANGED():
+        return float("NaN")
+    
     def count_text_segments(self, input_text, char):
         try:
             if char == "\\n":
@@ -715,12 +919,14 @@ class ExtractLinesByIndex:
 
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING", "STRING")
     FUNCTION = "extract_lines_by_index"
+    OUTPUT_TYPES = ("STRING", "STRING", "STRING", "STRING", "STRING")
+    OUTPUT_NAMES = ("文本1", "文本2", "文本3", "文本4", "文本5")
     CATEGORY = "Meeeyo/String"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
     
-    OUTPUT_TYPES = ("STRING", "STRING", "STRING", "STRING", "STRING")
-    OUTPUT_NAMES = ("文本1", "文本2", "文本3", "文本4", "文本5")
-
+    def IS_CHANGED():
+        return float("NaN")
+    
     def extract_lines_by_index(self, input_text, index, delimiter):
         try:
             if delimiter == "" or delimiter == "\n":
@@ -760,6 +966,9 @@ class ExtractSpecificLines:
     FUNCTION = "extract_specific_lines"
     CATEGORY = "Meeeyo/String"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
+    def IS_CHANGED():
+        return float("NaN")
     
     def extract_specific_lines(self, input_text, line_indices, split_char):
         if not split_char or split_char == "\n":
@@ -807,6 +1016,9 @@ class RemoveContentBetweenChars:
     CATEGORY = "Meeeyo/String"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
     
+    def IS_CHANGED():
+        return float("NaN")
+    
     def remove_content_between_chars(self, input_text, chars):
         try:
             if len(chars) == 3 and chars[1] == '|':
@@ -833,7 +1045,7 @@ class ShuffleTextLines:
                 "input_text": ("STRING", {"multiline": True, "default": ""}), 
                 "delimiter": ("STRING", {"default": "分隔符"}),
             },
-            "optional": {},
+            "optional": {"any": (any_typ,)} 
         }
 
     RETURN_TYPES = ("STRING",)
@@ -843,8 +1055,11 @@ class ShuffleTextLines:
     
     def IS_CHANGED():
         return float("NaN")
+    
+    def IS_CHANGED():
+        return float("NaN")
 
-    def shuffle_text_lines(self, input_text, delimiter):
+    def shuffle_text_lines(self, input_text, delimiter, any=None):
         if delimiter == "":
             lines = input_text.splitlines()
         elif delimiter == "\n":
@@ -887,6 +1102,9 @@ class ConditionalTextOutput:
     CATEGORY = "Meeeyo/String"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
     
+    def IS_CHANGED():
+        return float("NaN")
+    
     def conditional_text_output(self, original_content, check_text, text_if_exists, text_if_not_exists):
         if not check_text:
             return ("",)
@@ -917,6 +1135,9 @@ class TextConditionCheck:
     FUNCTION = "text_condition_check"
     CATEGORY = "Meeeyo/String"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
+    def IS_CHANGED():
+        return float("NaN")
     
     def text_condition_check(self, original_content, length_condition, frequency_condition):
         length_valid = self.check_length_condition(original_content, length_condition)
@@ -966,6 +1187,9 @@ class TextConcatenation:
     CATEGORY = "Meeeyo/String"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
     
+    def IS_CHANGED():
+        return float("NaN")
+    
     def text_concatenation(self, original_text, concatenation_rules, split_char):
         if split_char:
             original_lines = [line.strip() for line in original_text.split(split_char) if line.strip()]
@@ -1006,6 +1230,9 @@ class ExtractSpecificData:
     FUNCTION = "extract_specific_data"
     CATEGORY = "Meeeyo/String"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
+    def IS_CHANGED():
+        return float("NaN")
     
     def extract_specific_data(self, input_text, rule1, rule2):
         if rule1.strip():
@@ -1094,6 +1321,9 @@ class FindFirstLineContent:
     CATEGORY = "Meeeyo/String"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
     
+    def IS_CHANGED():
+        return float("NaN")
+    
     def find_first_line_content(self, input_text, target_char):
         try:
             lines = input_text.splitlines()
@@ -1107,3 +1337,101 @@ class FindFirstLineContent:
             return ("",)
         except Exception as e:
             return (f"Error: {str(e)}",) 
+        
+
+
+#======视频指令词模板
+class GenerateVideoPrompt:
+    def __init__(self):
+        pass
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "input_text": ("STRING", {"multiline": True, "default": ""}), 
+                "mode": (["原文本", "文生视频", "图生视频", "首尾帧视频", "视频负面词"],)
+            },
+            "optional": {}
+        }
+
+    RETURN_TYPES = ("STRING",)
+    FUNCTION = "generate_prompt"
+    CATEGORY = "Meeeyo/String"
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
+    def IS_CHANGED():
+        return float("NaN")
+    
+    def generate_prompt(self, input_text, mode):
+        try:
+            if mode == "原文本":
+                return (input_text,)
+                
+            elif mode == "文生视频":
+                prefix = """You are a highly experienced cinematic director, skilled in creating detailed and engaging visual narratives. When crafting prompts for text-to-video generation based on user input, your goal is to provide precise, chronological descriptions that guide the generation process. Your prompt should focus on clear visual details, including specific movements, appearances, camera angles, and environmental context.
+- Main Action: Start with a clear, concise description of the core action or event in the scene. This should be the focal point of the video.
+- Movement and Gestures: Describe any movements or gestures in the scene, whether from characters, objects, or the environment. Include specifics about how these movements are executed.
+- Appearance of Characters or Objects: Provide detailed descriptions of any characters or objects, focusing on aspects such as their physical appearance, clothing, and visual characteristics.
+- Background and Environment: Elaborate on the surrounding environment, highlighting important visual elements such as landscape features, architecture, or significant objects. These should support the action and enrich the scene.
+- Camera Angles and Movements: Specify the camera perspective (e.g., wide shot, close-up) and any movements (e.g., tracking, zooming, panning).
+- Lighting and Colors: Detail the lighting setup—whether natural, artificial, or dramatic—and how it impacts the scene’s atmosphere. Describe color tones that contribute to the mood.
+- Sudden Changes or Events: If any major shifts occur during the scene (e.g., a lighting change, weather shift, or emotional change), describe these transitions in detail.
+By structuring your prompt in this way, you ensure that the video output will be both engaging and professionally aligned with the user’s intended vision. The description should remain within the 200-word limit while maintaining a smooth flow and cinematic quality.
+The following is the main content of mine:
+"""
+                return (prefix + input_text,)
+                
+            elif mode == "图生视频":
+                prefix = """You are tasked with creating a cinematic, highly detailed video scene based on a given image or user description. This prompt is designed to generate an immersive and visually dynamic video experience by focusing on precise, chronological details. The goal is to build a vivid and realistic portrayal of the scene, paying close attention to every element, from the main action to environmental nuances. The description should flow seamlessly, focusing on essential visual and cinematic aspects while adhering to the 200-word limit.
+- Main Action/Focus:
+ Begin with a clear, concise description of the central action or key object in the scene. This could be a person, an object, or an event taking place, providing the core of the scene’s narrative.
+- Environment and Objects:
+ Describe the surrounding environment or objects in detail. Focus on their textures, colors, scale, and positioning. These details should support the main action and contribute to the atmosphere of the scene.
+- Background Details:
+ Provide a vivid depiction of the background. This could include natural or architectural elements, distant landscapes, or other features that add context to the main subject. These details should enrich the visual storytelling.
+- Camera Perspective and Movements:
+ Specify the camera angle or perspective being used—whether it’s a wide shot, a close-up, or something more dynamic like a tracking shot or pan. Include any camera movements, such as zooms, tilts, or dollies, if applicable.
+- Lighting and Colors:
+ Detail the lighting in the scene, explaining whether it’s natural, artificial, or a combination of both. Consider how the lighting affects the mood, the shadows it creates, and the color temperature (warm or cool).
+- Atmospheric or Environmental Changes:
+ If there are any shifts in the scene, like a sudden change in weather, lighting, or emotion, describe these transitions clearly. These environmental changes add dynamic elements to the video.
+- Final Details:
+ Ensure that all visual and contextual elements are cohesive and align with the image or input provided. Make sure the description transitions smoothly from one point to the next.
+By following this structure, you ensure that every aspect of the scene is addressed with precision, providing a detailed, cinematic prompt that is easily translated into a video. Keep the descriptions concise, ensuring all visual and environmental factors come together to create a fluid and engaging cinematic experience.
+The following is the main content of mine:
+"""
+                return (prefix + input_text,)
+                
+            elif mode == "首尾帧视频":
+                prefix = """You are an expert filmmaker renowned for transforming static imagery into compelling cinematic sequences. Using two images provided by the user, your task is to create a seamless visual narrative that bridges Image One to Image Two. Focus on the dynamic transition, highlighting actions, environmental shifts, and visual elements that unfold in chronological order. Craft your description with the language of cinematography, ensuring a fluid and immersive narrative.
+Requirements:
+ Scene Continuity:
+   - Begin with a detailed description of Image One’s setting, including central characters, objects, or key visual elements.
+   - Follow with a smooth narrative of the transition, emphasizing movement, visual progression, or any changes between the images.
+   - Conclude with a description of Image Two’s key details, noting the evolution of the environment, characters, or visual composition.
+ Richly Detailed Description:
+   - Capture notable actions, expressions, or gestures of characters or subjects.
+   - Describe environmental details such as lighting, color palette, weather, and atmosphere.
+   - Incorporate cinematographic techniques, including camera angles, zooms, tracking shots, or any dynamic movements.
+ Emotional and Contextual Flow:
+   - Highlight the emotional connection between the two images or the tone shift (e.g., from calm to tense, or from chaotic to serene).
+   - Prioritize visual coherence, even if there are discrepancies between the user’s input and the images.
+ Output Format:
+   - Begin by detailing Image One’s core elements and actions.
+   - Smoothly transition, describing visual progressions and movements.
+   - End with the details and conclusion of Image Two.
+   - Limit to 200 words in a single cohesive paragraph.
+The following is the main content of mine:
+"""
+                return (prefix + input_text,)
+                
+            elif mode == "视频负面词":
+                return (
+"""Overexposure, static artifacts, blurred details, visible subtitles, low-resolution paintings, still imagery, overly gray tones, poor quality, JPEG compression artifacts, unsightly distortions, mutilated features, redundant or extra fingers, poorly rendered hands, poorly depicted faces, anatomical deformities, facial disfigurements, misshapen limbs, fused or distorted fingers, cluttered and distracting background elements, extra or missing limbs (e.g., three legs), overcrowded backgrounds with excessive figures, reversed or upside-down compositions""",)
+                
+            else:
+                return ("",)
+                
+        except Exception as e:
+            return (f"Error: {str(e)}",)

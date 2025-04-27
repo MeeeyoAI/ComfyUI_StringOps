@@ -2,6 +2,9 @@ import math
 import random
 import torch
 import numpy as np
+from . import AnyType, any_typ
+
+
 
 #======比较数值
 class CompareInt:
@@ -15,7 +18,7 @@ class CompareInt:
                 "input_float": ("FLOAT", {"default": 4.0}),
                 "range": ("STRING", {"default": "3.5-5.5"}),
             },
-            "optional": {},
+            "optional": {"any": (any_typ,)} 
         }
 
     RETURN_TYPES = ("STRING",)
@@ -23,7 +26,10 @@ class CompareInt:
     CATEGORY = "Meeeyo/Number"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
     
-    def compare_float_to_range(self, input_float, range):
+    def IS_CHANGED():
+        return float("NaN")
+    
+    def compare_float_to_range(self, input_float, range, any=None):
         try:
             if '-' in range:
                 lower_bound, upper_bound = map(float, range.split('-'))
@@ -50,7 +56,7 @@ class FloatToInteger:
                 "float_value": ("FLOAT", {"default": 3.14}),
                 "operation": (["四舍五入", "取大值", "取小值", "最近32倍"], {"default": "四舍五入"}),
             },
-            "optional": {},
+            "optional": {"any": (any_typ,)} 
         }
 
     RETURN_TYPES = ("INT",)
@@ -60,8 +66,9 @@ class FloatToInteger:
     
     def IS_CHANGED():
         return float("NaN")
+    
 
-    def convert_float_to_integer(self, float_value, operation):
+    def convert_float_to_integer(self, float_value, operation, any=None):
         if operation == "四舍五入":
             result = round(float_value)
         elif operation == "取大值":
@@ -86,7 +93,7 @@ class GenerateNumbers:
                 "mode": (["顺序", "随机"], {"default": "顺序"}),
                 "prefix_suffix": ("STRING", {"default": "|"}),
             },
-            "optional": {},
+            "optional": {"any": (any_typ,)} 
         }
 
     RETURN_TYPES = ("STRING",)
@@ -96,8 +103,8 @@ class GenerateNumbers:
     
     def IS_CHANGED():
         return float("NaN")
-
-    def generate_numbers(self, range_rule, mode, prefix_suffix):
+    
+    def generate_numbers(self, range_rule, mode, prefix_suffix, any=None):
         try:
             start_str, range_str = range_rule.split('|')
             start = int(start_str)
@@ -132,7 +139,7 @@ class GetRandomIntegerInRange:
             "required": {
                 "range_str": ("STRING", {"default": "0-10"}),
             },
-            "optional": {},
+            "optional": {"any": (any_typ,)} 
         }
 
     RETURN_TYPES = ("INT", "STRING")
@@ -142,8 +149,8 @@ class GetRandomIntegerInRange:
     
     def IS_CHANGED():
         return float("NaN")
-
-    def get_random_integer_in_range(self, range_str):
+    
+    def get_random_integer_in_range(self, range_str, any=None):
         try:
             start, end = map(int, range_str.split('-'))
             if start > end:

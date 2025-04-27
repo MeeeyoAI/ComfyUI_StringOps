@@ -1,4 +1,5 @@
 import os
+import re
 import csv
 import torch
 import shutil
@@ -11,6 +12,11 @@ import node_helpers
 import numpy as np
 from PIL import Image, ImageOps, ImageSequence
 from pathlib import Path
+from openpyxl.drawing.image import Image as OpenpyxlImage
+from PIL import Image as PILImage
+from io import BytesIO
+from . import AnyType, any_typ
+
 
 #======加载重置图像
 class LoadAndAdjustImage:
@@ -165,7 +171,8 @@ class ImageAdjuster:
                 "size_option": ([
                     "Custom", "Million Pixels", "Small", "Medium", "Large", 
                     "480P-H(vid 4:3)", "480P-V(vid 3:4)", "720P-H(vid 16:9)", "720P-V(vid 9:16)", "832×480", "480×832"], 
-                    {"default": "Million Pixels"})
+                    {"default": "Million Pixels"}
+                )
             }
         }
 
@@ -179,18 +186,23 @@ class ImageAdjuster:
         return float("NaN")
 
     def process_image(self, image, max_dimension=1024, size_option="Custom"):
-        input_image = Image.fromarray((image.squeeze(0).numpy() * 255).astype(np.uint8))
-        W, H = input_image.size
-
+        batch_size = image.shape[0]
         processed_images = []
+        widths = []
+        heights = []
 
-        for frame in [input_image]:
-            frame = ImageOps.exif_transpose(frame)
+        for i in range(batch_size):
+            current_image = image[i]
+            input_pil_image = Image.fromarray((current_image.numpy() * 255).astype(np.uint8))
+            W, H = input_pil_image.size
 
-            if frame.mode == 'P':
-                frame = frame.convert("RGBA")
-            elif 'A' in frame.getbands():
-                frame = frame.convert("RGBA")
+            processed_image_pil = input_pil_image.copy()
+            processed_image_pil = ImageOps.exif_transpose(processed_image_pil)
+
+            if processed_image_pil.mode == 'P':
+                processed_image_pil = processed_image_pil.convert("RGBA")
+            elif 'A' in processed_image_pil.getbands():
+                processed_image_pil = processed_image_pil.convert("RGBA")
 
             if size_option != "Custom":
                 aspect_ratio = W / H
@@ -211,50 +223,55 @@ class ImageAdjuster:
                         (1120, 1600) if aspect_ratio <= 0.82 else
                         (1600, 1600)
                     ),
-                    "Million Pixels": self._resize_to_million_pixels(W, H),  # Million Pixels option
-                    "480P-H(vid 4:3)": (640, 480),  # 480P-H, 640x480
-                    "480P-V(vid 3:4)": (480, 640),  # 480P-V, 480x640
-                    "720P-H(vid 16:9)": (1280, 720),  # 720P-H, 1280x720
-                    "720P-V(vid 9:16)": (720, 1280),  # 720P-V, 720x1280
-                    "832×480": (832, 480),  # 832x480
-                    "480×832": (480, 832),  # 480x832
+                    "Million Pixels": self._resize_to_million_pixels(W, H),
+                    "480P-H(vid 4:3)": (640, 480),
+                    "480P-V(vid 3:4)": (480, 640),
+                    "720P-H(vid 16:9)": (1280, 720),
+                    "720P-V(vid 9:16)": (720, 1280),
+                    "832×480": (832, 480),
+                    "480×832": (480, 832)
                 }
 
                 target_width, target_height = size_options[size_option]
-                processed_image = frame.convert("RGB")
-                processed_image = ImageOps.fit(processed_image, (target_width, target_height), method=Image.Resampling.BILINEAR, centering=(0.5, 0.5))
+                processed_image_pil = processed_image_pil.convert("RGB")
+                processed_image_pil = ImageOps.fit(processed_image_pil, (target_width, target_height), method=Image.Resampling.BILINEAR, centering=(0.5, 0.5))
             else:
                 ratio = min(max_dimension / W, max_dimension / H)
                 adjusted_width = round(W * ratio)
                 adjusted_height = round(H * ratio)
 
-                processed_image = frame.convert("RGB")
-                processed_image = processed_image.resize((adjusted_width, adjusted_height), Image.Resampling.BILINEAR)
+                processed_image_pil = processed_image_pil.convert("RGB")
+                processed_image_pil = processed_image_pil.resize((adjusted_width, adjusted_height), Image.Resampling.BILINEAR)
 
-            processed_image = np.array(processed_image).astype(np.float32) / 255.0
-            processed_image = torch.from_numpy(processed_image)[None,]
+            processed_image = np.array(processed_image_pil).astype(np.float32) / 255.0
+            processed_image = torch.from_numpy(processed_image)
             processed_images.append(processed_image)
 
-        output_image = torch.cat(processed_images, dim=0) if len(processed_images) > 1 else processed_images[0]
-        if size_option != "Custom":
-            return (output_image, target_width, target_height)
+            if size_option != "Custom":
+                widths.append(target_width)
+                heights.append(target_height)
+            else:
+                widths.append(adjusted_width)
+                heights.append(adjusted_height)
+
+        output_image = torch.stack(processed_images)
+        
+        if all(w == widths[0] for w in widths) and all(h == heights[0] for h in heights):
+            return (output_image, widths[0], heights[0])
         else:
-            return (output_image, adjusted_width, adjusted_height)
+            return (output_image, widths[0], heights[0])
 
     def _resize_to_million_pixels(self, W, H):
-        # Calculate the aspect ratio of the original image
         aspect_ratio = W / H
-        target_area = 1000000  # 1 million pixels
+        target_area = 1000000
         
-        # Calculate the new width and height while maintaining the aspect ratio
-        if aspect_ratio > 1:  # Landscape
+        if aspect_ratio > 1:
             width = int(np.sqrt(target_area * aspect_ratio))
             height = int(target_area / width)
-        else:  # Portrait
+        else:
             height = int(np.sqrt(target_area / aspect_ratio))
             width = int(target_area / height)
 
-        # Round width and height to the nearest multiple of 8
         width = (width + 7) // 8 * 8
         height = (height + 7) // 8 * 8
         
@@ -280,7 +297,7 @@ class CustomCrop:
     CATEGORY = "Meeeyo/File"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
     
-    def IS_CHANGED(self):
+    def IS_CHANGED():
         return float("NaN")
 
     def process_image(self, image, width=768, height=768):
@@ -390,11 +407,9 @@ class FileCopyCutNode:
                 "destination_path": ("STRING", {"default": "", "multiline": False}),
                 "operation": (["copy", "cut"], {"default": "copy"}),
             },
-            "optional": {
-                "any": ("*",), 
-            },
+            "optional": {"any": (any_typ,)}  # 可以进一步简化成一行
         }
-    
+
     RETURN_TYPES = ("STRING",)  # 返回操作结果字符串
     RETURN_NAMES = ("result",)
     FUNCTION = "copy_cut_file"
@@ -404,16 +419,16 @@ class FileCopyCutNode:
     def IS_CHANGED():
         return float("NaN")
 
-    def copy_cut_file(self, source_path, destination_path, operation, **kwargs):
+    def copy_cut_file(self, source_path, destination_path, operation, any=None):
         result = "执行失败"
         try:
             # 检查文件是否存在
             if not os.path.isfile(source_path):
-                raise Exception(f"Source file not found: {source_path}")
-                
-            # 确保目录存在
-            os.makedirs(os.path.dirname(destination_path), exist_ok=True)
+                raise FileNotFoundError(f"源文件未找到: {source_path}")
             
+            # 确保目标目录存在
+            os.makedirs(os.path.dirname(destination_path), exist_ok=True)
+
             # 执行复制或剪切操作
             if operation == "copy":
                 shutil.copy2(source_path, destination_path)
@@ -421,15 +436,93 @@ class FileCopyCutNode:
             elif operation == "cut":
                 shutil.move(source_path, destination_path)
                 result = "执行成功: 文件已剪切"
+            else:
+                raise ValueError("操作类型无效，仅支持 'copy' 或 'cut'。")
+        except FileNotFoundError as e:
+            result = f"执行失败: {str(e)}"
+        except ValueError as e:
+            result = f"执行失败: {str(e)}"
         except Exception as e:
             result = f"执行失败: {str(e)}"
-        
+
         return (result,)
 
 
-#======清理文件
-COMFYUI_OUTPUT_DIR = "output"
 
+
+#======替换文件名
+class FileNameReplacer:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "file_path": ("STRING", {"default": "path/to/your/file.jpg"}),
+                "new_file_name": ("STRING", {"default": ""}),
+            },
+            "optional": {"any": (any_typ,)} 
+        }
+
+    RETURN_TYPES = ("STRING",)
+    FUNCTION = "replace_file_name"
+    CATEGORY = "Meeeyo/File"
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
+    def IS_CHANGED():
+        return float("NaN")
+
+    def replace_file_name(self, file_path, new_file_name, any=None):
+        # 获取目录和原始文件名与扩展名
+        dir_name = os.path.dirname(file_path)
+        _, file_ext = os.path.splitext(file_path)
+
+        # 替换非法字符
+        new_file_name = self.sanitize_file_name(new_file_name)
+
+        # 构造新的文件路径
+        new_file_path = os.path.join(dir_name, new_file_name + file_ext)
+
+        return (new_file_path,)
+
+    def sanitize_file_name(self, file_name):
+        # 替换不能作为文件名的字符为"_"
+        invalid_chars = r'[\/:*?"<>|]'
+        return re.sub(invalid_chars, '_', file_name)
+
+
+#======文本写入TXT
+class WriteToTxtFile:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "text_content": ("STRING", {"default": "", "multiline": True}),
+                "file_path": ("STRING", {"default": "path/to/your/file.txt"}),
+            },
+            "optional": {"any": (any_typ,)} 
+        }
+
+    RETURN_TYPES = ("STRING",)
+    FUNCTION = "write_to_txt"
+    CATEGORY = "Meeeyo/File"
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
+    def IS_CHANGED():
+        return float("NaN")
+
+    def write_to_txt(self, text_content, file_path, any=None):
+        try:
+            file_exists = os.path.exists(file_path)
+            mode = 'a' if file_exists else 'w'
+            with open(file_path, mode, encoding='utf-8') as f:
+                if file_exists:
+                    f.write('\n\n')  # 如果文件存在，写入两个换行符
+                f.write(text_content)
+            return ("Write successful: " + text_content,)
+        except Exception as e:
+            return (f"Error: {str(e)}",)
+
+
+#======清理文件
 class FileDeleteNode:
     @classmethod
     def INPUT_TYPES(cls):
@@ -437,9 +530,7 @@ class FileDeleteNode:
             "required": {
                 "items_to_delete": ("STRING", {"default": "33.png\ncs1/01.png\ncs1", "multiline": True}),
             },
-            "optional": {
-                "any": ("*",),
-            },
+            "optional": {"any": (any_typ,)} 
         }
     
     RETURN_TYPES = ("STRING",)
@@ -448,10 +539,11 @@ class FileDeleteNode:
     CATEGORY = "Meeeyo/File"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
     
-    def IS_CHANGED(self):
+    def IS_CHANGED():
         return float("NaN")
 
-    def delete_files(self, items_to_delete, **kwargs):
+    def delete_files(self, items_to_delete, any=None):
+
         result = "执行成功: 所有指定项已从output目录删除"
         error_messages = []
 
@@ -522,7 +614,7 @@ class FileListAndSuffix:
                 "folder_path": ("STRING",),
                 "file_extension": (["jpg", "png", "jpg&png", "txt", "csv", "all"], {"default": "jpg"}),
             },
-            "optional": {},
+            "optional": {"any": (any_typ,)} 
         }
 
     RETURN_TYPES = ("STRING", "INT", "LIST")
@@ -533,7 +625,7 @@ class FileListAndSuffix:
     def IS_CHANGED():
         return float("NaN")
 
-    def file_list_and_suffix(self, folder_path, file_extension):
+    def file_list_and_suffix(self, folder_path, file_extension, any=None):
         try:
             if not os.path.isdir(folder_path):
                 return ("", 0, [])
@@ -563,7 +655,8 @@ class ReadExcelData:
                 "sheet_name": ("STRING", {"default": "Sheet1"}),
                 "row_range": ("STRING", {"default": "2-3"}),
                 "col_range": ("STRING", {"default": "1-4"}),
-            }
+            },
+            "optional": {"any": (any_typ,)} 
         }
 
     RETURN_TYPES = ("STRING",)
@@ -574,7 +667,7 @@ class ReadExcelData:
     def IS_CHANGED():
         return float("NaN")
 
-    def read_excel_data(self, excel_path, sheet_name, row_range, col_range):
+    def read_excel_data(self, excel_path, sheet_name, row_range, col_range, any=None):
         try:
             if "-" in row_range:
                 start_row, end_row = map(int, row_range.split("-"))
@@ -623,7 +716,8 @@ class WriteExcelData:
                 "row_range": ("STRING", {"default": "2-3"}),
                 "col_range": ("STRING", {"default": "1-4"}),
                 "data": ("STRING", {"default": "", "multiline": True}),
-            }
+            },
+            "optional": {"any": (any_typ,)} 
         }
 
     RETURN_TYPES = ("STRING",)
@@ -634,7 +728,7 @@ class WriteExcelData:
     def IS_CHANGED():
         return float("NaN")
 
-    def write_excel_data(self, excel_path, sheet_name, row_range, col_range, data):
+    def write_excel_data(self, excel_path, sheet_name, row_range, col_range, data, any=None):
         try:
             if not os.path.exists(excel_path):
                 return (f"Error: File does not exist at path: {excel_path}",)
@@ -685,6 +779,70 @@ class WriteExcelData:
             return (f"Error: {str(e)}",)
 
 
+#======图片插入表格
+class WriteExcelImage:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "excel_path": ("STRING", {"default": "path/to/your/file.xlsx"}),
+                "sheet_name": ("STRING", {"default": "Sheet1"}),
+                "row_range": ("STRING", {"default": "1"}),
+                "col_range": ("STRING", {"default": "1"}),
+                "image_path": ("STRING", {"default": "path/to/your/image.png"}),
+            },
+            "optional": {"any": (any_typ,)} 
+        }
+
+    RETURN_TYPES = ("STRING",)
+    FUNCTION = "write_image"
+    CATEGORY = "Meeeyo/File"
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
+    def IS_CHANGED():
+        return float("NaN")
+
+    def write_image(self, excel_path, sheet_name, row_range, col_range, image_path, any=None):
+        try:
+            if not os.path.exists(excel_path):
+                return (f"Error: Excel file does not exist at path: {excel_path}",)
+            if not os.access(excel_path, os.W_OK):
+                return (f"Error: No write permission for Excel file at path: {excel_path}",)
+            if not os.path.exists(image_path):
+                return (f"Error: Image file does not exist at path: {image_path}",)
+            if not os.access(image_path, os.R_OK):
+                return (f"Error: No read permission for image file at path: {image_path}",)
+            if "-" in row_range:
+                start_row, end_row = map(int, row_range.split("-"))
+            else:
+                start_row = end_row = int(row_range)
+            if "-" in col_range:
+                start_col, end_col = map(int, col_range.split("-"))
+            else:
+                start_col = end_col = int(col_range)
+            start_row = max(1, start_row)
+            start_col = max(1, start_col)
+            workbook = openpyxl.load_workbook(excel_path, read_only=False, data_only=True)
+            sheet = workbook[sheet_name]
+            thumbnail_size = (128, 128)
+            with PILImage.open(image_path) as img:
+                img = img.resize(thumbnail_size)
+                img_byte_array = BytesIO()
+                img.save(img_byte_array, format='PNG')
+                img_byte_array.seek(0)
+                openpyxl_img = OpenpyxlImage(img_byte_array)
+            cell_address = openpyxl.utils.get_column_letter(start_col) + str(start_row)
+            sheet.add_image(openpyxl_img, cell_address)
+            workbook.save(excel_path)
+            workbook.close()
+            return ("Image inserted successfully!",)
+        except PermissionError as pe:
+            return (f"Permission Error: {str(pe)}",)
+        except Exception as e:
+            return (f"Error: {str(e)}",)
+
+
+
 #======查找表格数据
 class FindExcelData:
     def __init__(self):
@@ -699,7 +857,7 @@ class FindExcelData:
                 "search_content": ("STRING", {"default": "查找内容"}),
                 "search_mode": (["精确查找", "模糊查找"], {"default": "精确查找"}),
             },
-            "optional": {},
+            "optional": {"any": (any_typ,)} 
         }
 
     RETURN_TYPES = ("STRING", "INT", "INT")
@@ -710,7 +868,7 @@ class FindExcelData:
     def IS_CHANGED():
         return float("NaN")
 
-    def find_excel_data(self, excel_path, sheet_name, search_content, search_mode):
+    def find_excel_data(self, excel_path, sheet_name, search_content, search_mode, any=None):
         try:
             if not os.path.exists(excel_path):
                 return (f"Error: File does not exist at path: {excel_path}", None, None)
@@ -761,7 +919,8 @@ class ReadExcelRowOrColumnDiff:
                 "sheet_name": ("STRING", {"default": "Sheet1"}),
                 "read_mode": (["读行", "读列"], {"default": "读行"}),
                 "indices": ("STRING", {"default": "1,3"}),
-            }
+            },
+            "optional": {"any": (any_typ,)} 
         }
 
     RETURN_TYPES = ("INT",)
@@ -772,7 +931,7 @@ class ReadExcelRowOrColumnDiff:
     def IS_CHANGED():
         return float("NaN")
 
-    def read_excel_row_or_column_diff(self, excel_path, sheet_name, read_mode, indices):
+    def read_excel_row_or_column_diff(self, excel_path, sheet_name, read_mode, indices, any=None):
         try:
             if not os.path.exists(excel_path):
                 return (f"Error: File does not exist at path: {excel_path}",)
