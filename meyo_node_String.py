@@ -114,6 +114,52 @@ class TextConcatenator:
             return (f"Error: {str(e)}",)
         
 
+#======文本拼接
+class TextConcatenator:
+    def __init__(self):
+        pass
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "text1": ("STRING", {"multiline": True, "default": ""}),
+                "text2": ("STRING", {"multiline": True, "default": ""}),
+                "text3": ("STRING", {"multiline": True, "default": ""}),
+                "text4": ("STRING", {"multiline": True, "default": ""}),
+                "combine_order": ("STRING", {"default": ""})
+            },
+        }
+
+    RETURN_TYPES = ("STRING",)
+    FUNCTION = "combine_texts"
+    CATEGORY = "Meeeyo/String"
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
+    def combine_texts(self, text1, text2, text3, text4, combine_order):
+        try:
+            text_map = {
+                "1": text1,
+                "2": text2,
+                "3": text3,
+                "4": text4
+            }
+            if not combine_order:
+                combine_order = "1+2+3+4"
+            parts = combine_order.split("+")
+            valid_parts = []
+            for part in parts:
+                if part in text_map:
+                    valid_parts.append(part)
+                else:
+                    return (f"Error: Invalid input '{part}' in combine_order. Valid options are 1, 2, 3, 4.",)
+            non_empty_texts = [text_map[part] for part in valid_parts if text_map[part]]
+            result = ",".join(non_empty_texts)
+            return (result,)
+        except Exception as e:
+            return (f"Error: {str(e)}",)
+        
+
 #======多参数输入
 class MultiParamInputNode:
     @classmethod
@@ -153,6 +199,7 @@ class NumberExtractor:
 
     RETURN_TYPES = ("INT", "INT")  # 返回两个整数
     FUNCTION = "process_inputs"
+<<<<<<< HEAD
     OUTPUT_NODE = False
     CATEGORY = "Meeeyo/String"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
@@ -160,6 +207,12 @@ class NumberExtractor:
     def IS_CHANGED():
         return float("NaN")
     
+=======
+    CATEGORY = "Meeeyo/String"
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    OUTPUT_NODE = False
+
+>>>>>>> b7ed81e9e5c54e5f2fa5775e72a7718ed2b72f70
     def process_inputs(self, int1, int2):
         return (int1, int2)
 
@@ -1360,9 +1413,12 @@ class GenerateVideoPrompt:
     CATEGORY = "Meeeyo/String"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
     
+<<<<<<< HEAD
     def IS_CHANGED():
         return float("NaN")
     
+=======
+>>>>>>> b7ed81e9e5c54e5f2fa5775e72a7718ed2b72f70
     def generate_prompt(self, input_text, mode):
         try:
             if mode == "原文本":

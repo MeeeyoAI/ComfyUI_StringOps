@@ -23,10 +23,17 @@ NODE_CLASS_MAPPINGS = {
 
     #字符串处理：meyo_node_String
     "SingleTextInput": SingleTextInput,  
+<<<<<<< HEAD
     "TextToList": TextToList,  
     "TextConcatenator": TextConcatenator,  
     "MultiParamInputNode": MultiParamInputNode,
     "NumberExtractor": NumberExtractor, 
+=======
+    "TextConcatenator": TextConcatenator,  
+    "MultiParamInputNode": MultiParamInputNode,
+    "NumberExtractor": NumberExtractor, 
+
+>>>>>>> b7ed81e9e5c54e5f2fa5775e72a7718ed2b72f70
     "AddPrefixSuffix": AddPrefixSuffix,
     "ExtractSubstring": ExtractSubstring,
     "ExtractSubstringByIndices": ExtractSubstringByIndices,
@@ -88,6 +95,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
    "GetRandomIntegerInRange": "范围内随机数🐠meeeyo.com",
 
    #字符串处理：meyo_node_String
+<<<<<<< HEAD
    "SingleTextInput": "文本输入🐠meeeyo.com",
    "TextToList": "文本到列表🐠meeeyo.com",
    "TextConcatenator": "文本拼接🐠meeeyo.com",  
@@ -121,6 +129,40 @@ NODE_DISPLAY_NAME_MAPPINGS = {
    "ExtractSpecificData": "提取多层指定数据🐠meeeyo.com",
    "FindFirstLineContent": "指定字符行参数🐠meeeyo.com",
    "GenerateVideoPrompt": "视频指令词模板🐠meeeyo.com",
+=======
+   "SingleTextInput": "文本输入(meeeyo.com)",  
+   "TextConcatenator": "文本拼接(meeeyo.com)",  
+   "MultiParamInputNode": "多参数输入(meeeyo.com)",
+   "NumberExtractor": "整数参数(meeeyo.com)",
+
+   "AddPrefixSuffix": "添加前后缀(meeeyo.com)",
+   "ExtractSubstring": "提取标签之间(meeeyo.com)",
+   "ExtractSubstringByIndices": "按数字范围提取(meeeyo.com)",
+   "SplitStringByDelimiter": "分隔符拆分两边(meeeyo.com)",
+   "ProcessString": "常规处理字符(meeeyo.com)",
+   "ExtractBeforeAfter": "提取前后字符(meeeyo.com)",
+   "ReplaceNthOccurrence": "替换第n次出现(meeeyo.com)",
+   "ReplaceMultiple": "多次出现依次替换(meeeyo.com)",
+   "BatchReplaceStrings": "批量替换字符(meeeyo.com)",
+   "RandomLineFromText": "随机行内容(meeeyo.com)",
+   "CheckSubstringPresence": "判断是否包含字符(meeeyo.com)",
+   "AddPrefixSuffixToLines": "段落每行添加前后缀(meeeyo.com)",
+   "ExtractAndCombineLines": "段落提取指定索引行(meeeyo.com)",
+   "FilterLinesBySubstrings": "段落提取或移除字符行(meeeyo.com)",
+   "FilterLinesByWordCount": "段落字数条件过滤行(meeeyo.com)",
+   "SplitAndExtractText": "按序号提取分割文本(meeeyo.com)",
+   "CountOccurrences": "文本出现次数(meeeyo.com)",
+   "ExtractLinesByIndex": "文本拆分(meeeyo.com)",
+   "ExtractSpecificLines": "提取特定行(meeeyo.com)",
+   "RemoveContentBetweenChars": "删除标签内的内容(meeeyo.com)",
+   "ShuffleTextLines": "随机打乱(meeeyo.com)",
+   "ConditionalTextOutput": "判断返回内容(meeeyo.com)",
+   "TextConditionCheck": "文本按条件判断(meeeyo.com)",
+   "TextConcatenation": "文本组合(meeeyo.com)",
+   "ExtractSpecificData": "提取多层指定数据(meeeyo.com)",
+   "FindFirstLineContent": "指定字符行参数(meeeyo.com)",
+   "GenerateVideoPrompt": "视频指令词模板(meeeyo.com)",
+>>>>>>> b7ed81e9e5c54e5f2fa5775e72a7718ed2b72f70
 
    #文件处理：meyo_node_File
    "LoadAndAdjustImage": "加载重置图像🐠meeeyo.com",
