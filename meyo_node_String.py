@@ -67,7 +67,7 @@ class TextConcatenator:
     @classmethod
     def INPUT_TYPES(cls):
         return {
-            "required": {
+            "optional": {
                 "text1": ("STRING", {"multiline": True, "default": ""}),
                 "text2": ("STRING", {"multiline": True, "default": ""}),
                 "text3": ("STRING", {"multiline": True, "default": ""}),

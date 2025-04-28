@@ -3,9 +3,6 @@ class AnyType(str):
         return False
 any_typ = AnyType("*")
 
-
-
-
 from .meyo_node_Computational import  *
 from .meyo_node_String import  *
 from .meyo_node_File import *
@@ -74,6 +71,8 @@ NODE_CLASS_MAPPINGS = {
 
     #功能型节点：meyo_node_Functional
     "GetCurrentTime": GetCurrentTime,
+    "SimpleRandomSeed": SimpleRandomSeed,
+    "SplitIntegers": SplitIntegers,
     "SelectionParameter": SelectionParameter,
     "ReadWebNode": ReadWebNode,
 }
@@ -140,6 +139,9 @@ NODE_DISPLAY_NAME_MAPPINGS = {
    
     #功能型节点：meyo_node_Functional
    "GetCurrentTime": "当前时间(戳)🐠meeeyo.com",
+   "SimpleRandomSeed": "随机整数🐠meeeyo.com", 
+   "SplitIntegers": "整数参数🐠meeeyo.com",  
+
    "SelectionParameter": "选择参数🐠meeeyo.com",
    "ReadWebNode": "读取页面🐠meeeyo.com",
 }

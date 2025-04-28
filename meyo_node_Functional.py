@@ -2,6 +2,7 @@ import time
 import secrets
 import requests
 import base64
+import random
 from datetime import datetime
 from . import AnyType, any_typ
 
@@ -30,7 +31,70 @@ class GetCurrentTime:
         formatted_time_with_prefix = f"{prefix} {current_time}"
         return (formatted_time_with_prefix, timestamp)
 
+
+#======随机整数
+class SimpleRandomSeed:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "optional": {"any": (any_typ,)} 
+        }
+
+    RETURN_TYPES = ("STRING", "INT")
+    FUNCTION = "generate_random_seed"
+    CATEGORY = "Meeeyo/Functional"
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    def IS_CHANGED():
+        return float("NaN")
+    
+    def generate_random_seed(self, any=None):
+        try:
+            length = random.randint(8, 12)
+            first_digit = random.randint(1, 9)
+            remaining_digits = random.randint(0, 10**(length - 1) - 1)
+            random_seed = int(str(first_digit) + str(remaining_digits).zfill(length - 1))
+            return (str(random_seed), random_seed)
+
+        except Exception as e:
+            return (f"Error: {str(e)}",)
+
         
+
+
+#======整数参数
+class SplitIntegers:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "numbers": ("STRING", {"default": "2|3|4|5"}),  # Input for the numbers separated by '|'
+            },
+        }
+
+    RETURN_TYPES = ("INT", "INT", "INT", "INT")
+    FUNCTION = "split_numbers"
+    CATEGORY = "Meeeyo/Functional"
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    def IS_CHANGED():
+        return float("NaN")
+    
+    def split_numbers(self, numbers):
+        try:
+            parts = numbers.split('|')
+            result = []
+            for i in range(4):
+                if i < len(parts) and parts[i].strip():
+                    try:
+                        result.append(int(parts[i].strip()))
+                    except ValueError:
+                        result.append(None)
+                else:
+                    result.append(None)
+            return tuple(result)
+        except Exception as e:
+            return (f"Error: {str(e)}", None, None, None)
+
+
 #======选择参数diy
 class SelectionParameter:
     @classmethod
