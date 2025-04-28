@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+import os, re,io, base64, csv, torch
+import shutil, requests, chardet, pathlib
+import openpyxl, folder_paths, node_helpers
+=======
 import os
 import re
 import csv
@@ -9,6 +14,7 @@ import pathlib
 import openpyxl
 import folder_paths
 import node_helpers
+>>>>>>> 79ed250c5d0d1f11fccbec9087431ff25fc1e810
 import numpy as np
 from PIL import Image, ImageOps, ImageSequence
 from pathlib import Path
@@ -17,6 +23,71 @@ from PIL import Image as PILImage
 from io import BytesIO
 from . import AnyType, any_typ
 
+<<<<<<< HEAD
+
+
+
+#======全能加载图像
+class GenericImageLoader:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "path_or_input": ("STRING", {"default": ""}),
+            }
+        }
+    RETURN_TYPES = ("IMAGE", "MASK")
+    FUNCTION = "load_image"
+    OUTPUT_NODE = False
+    CATEGORY = "Meeeyo/File"
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
+    def IS_CHANGED():
+        return float("NaN")
+
+    def load_image(self, path_or_input):
+        path = path_or_input.strip()
+        for ctrl in ['\u202a', '\u202b', '\u202c', '\u202d', '\u202e']:
+            while path.startswith(ctrl):
+                path = path.lstrip(ctrl)
+
+        source = None
+        lower = path.lower()
+        if lower.startswith('http://') or lower.startswith('https://'):
+            source = 'network'
+        elif os.path.isfile(path):
+            source = 'local'
+        else:
+            source = 'base64'
+        if source == 'local':
+            img = Image.open(path)
+        elif source == 'network':
+            resp = requests.get(path)
+            resp.raise_for_status()
+            img = Image.open(io.BytesIO(resp.content))
+        else:  # 'base64'
+            if ',' in path and path.startswith('data:'):
+                _, data = path.split(',', 1)
+            else:
+                data = path
+            decoded = base64.b64decode(data)
+            img = Image.open(io.BytesIO(decoded))
+
+        img = img.convert('RGBA')
+        has_alpha = img.mode == 'RGBA'
+        if has_alpha:
+            alpha_channel = np.array(img)[:, :, 3]
+            mask = (alpha_channel > 0).astype(np.float32)
+            mask_tensor = torch.from_numpy(mask).unsqueeze(0).unsqueeze(0) 
+        else:
+            mask_tensor = torch.zeros((1, 1, img.size[1], img.size[0]), dtype=torch.float32) 
+        np_img = np.array(img).astype(np.float32) / 255.0
+        img_tensor = torch.from_numpy(np_img).unsqueeze(0)
+
+        return img_tensor, mask_tensor 
+
+=======
+>>>>>>> 79ed250c5d0d1f11fccbec9087431ff25fc1e810
 
 #======加载重置图像
 class LoadAndAdjustImage:
@@ -186,29 +257,41 @@ class ImageAdjuster:
         return float("NaN")
 
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 79ed250c5d0d1f11fccbec9087431ff25fc1e810
     def process_image(self, image, mask, max_dimension=1024, size_option="Custom"):
         batch_size = image.shape[0]
         processed_images = []
         processed_masks = []
+<<<<<<< HEAD
+=======
 =======
     def process_image(self, image, max_dimension=1024, size_option="Custom"):
         batch_size = image.shape[0]
         processed_images = []
 >>>>>>> db71d026f74322a6e66276701198bfe8b5d44ad8
+>>>>>>> 79ed250c5d0d1f11fccbec9087431ff25fc1e810
         widths = []
         heights = []
 
         for i in range(batch_size):
             current_image = image[i]
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 79ed250c5d0d1f11fccbec9087431ff25fc1e810
             current_mask = mask[i]
             
             input_pil_image = Image.fromarray((current_image.numpy() * 255).astype(np.uint8))
             input_pil_mask = Image.fromarray((current_mask.numpy() * 255).astype(np.uint8))
             
+<<<<<<< HEAD
+=======
 =======
             input_pil_image = Image.fromarray((current_image.numpy() * 255).astype(np.uint8))
 >>>>>>> db71d026f74322a6e66276701198bfe8b5d44ad8
+>>>>>>> 79ed250c5d0d1f11fccbec9087431ff25fc1e810
             W, H = input_pil_image.size
 
             processed_image_pil = input_pil_image.copy()
@@ -219,7 +302,13 @@ class ImageAdjuster:
             processed_mask_pil = ImageOps.exif_transpose(processed_mask_pil)
 
 =======
+<<<<<<< HEAD
+            processed_mask_pil = input_pil_mask.copy()
+            processed_mask_pil = ImageOps.exif_transpose(processed_mask_pil)
+
+=======
 >>>>>>> db71d026f74322a6e66276701198bfe8b5d44ad8
+>>>>>>> 79ed250c5d0d1f11fccbec9087431ff25fc1e810
             if processed_image_pil.mode == 'P':
                 processed_image_pil = processed_image_pil.convert("RGBA")
             elif 'A' in processed_image_pil.getbands():
@@ -229,7 +318,13 @@ class ImageAdjuster:
             if processed_mask_pil.mode != "L":
                 processed_mask_pil = processed_mask_pil.convert("L")
 =======
+<<<<<<< HEAD
+
+            if processed_mask_pil.mode != "L":
+                processed_mask_pil = processed_mask_pil.convert("L")
+=======
 >>>>>>> db71d026f74322a6e66276701198bfe8b5d44ad8
+>>>>>>> 79ed250c5d0d1f11fccbec9087431ff25fc1e810
 
             if size_option != "Custom":
                 aspect_ratio = W / H
@@ -266,7 +361,12 @@ class ImageAdjuster:
                 
                 processed_mask_pil = ImageOps.fit(processed_mask_pil, (target_width, target_height), method=Image.Resampling.BILINEAR, centering=(0.5, 0.5))
 =======
+<<<<<<< HEAD
+                
+                processed_mask_pil = ImageOps.fit(processed_mask_pil, (target_width, target_height), method=Image.Resampling.BILINEAR, centering=(0.5, 0.5))
+=======
 >>>>>>> db71d026f74322a6e66276701198bfe8b5d44ad8
+>>>>>>> 79ed250c5d0d1f11fccbec9087431ff25fc1e810
             else:
                 ratio = min(max_dimension / W, max_dimension / H)
                 adjusted_width = round(W * ratio)
@@ -278,19 +378,30 @@ class ImageAdjuster:
                 
                 processed_mask_pil = processed_mask_pil.resize((adjusted_width, adjusted_height), Image.Resampling.BILINEAR)
 =======
+<<<<<<< HEAD
+                
+                processed_mask_pil = processed_mask_pil.resize((adjusted_width, adjusted_height), Image.Resampling.BILINEAR)
+=======
 >>>>>>> db71d026f74322a6e66276701198bfe8b5d44ad8
+>>>>>>> 79ed250c5d0d1f11fccbec9087431ff25fc1e810
 
             processed_image = np.array(processed_image_pil).astype(np.float32) / 255.0
             processed_image = torch.from_numpy(processed_image)
             processed_images.append(processed_image)
 
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 79ed250c5d0d1f11fccbec9087431ff25fc1e810
             processed_mask = np.array(processed_mask_pil).astype(np.float32) / 255.0
             processed_mask = torch.from_numpy(processed_mask)
             processed_masks.append(processed_mask)
 
+<<<<<<< HEAD
+=======
 =======
 >>>>>>> db71d026f74322a6e66276701198bfe8b5d44ad8
+>>>>>>> 79ed250c5d0d1f11fccbec9087431ff25fc1e810
             if size_option != "Custom":
                 widths.append(target_width)
                 heights.append(target_height)
@@ -300,12 +411,17 @@ class ImageAdjuster:
 
         output_image = torch.stack(processed_images)
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 79ed250c5d0d1f11fccbec9087431ff25fc1e810
         output_mask = torch.stack(processed_masks)
         
         if all(w == widths[0] for w in widths) and all(h == heights[0] for h in heights):
             return (output_image, output_mask, widths[0], heights[0])
         else:
             return (output_image, output_mask, widths[0], heights[0])
+<<<<<<< HEAD
+=======
 =======
         
         if all(w == widths[0] for w in widths) and all(h == heights[0] for h in heights):
@@ -313,6 +429,7 @@ class ImageAdjuster:
         else:
             return (output_image, widths[0], heights[0])
 >>>>>>> db71d026f74322a6e66276701198bfe8b5d44ad8
+>>>>>>> 79ed250c5d0d1f11fccbec9087431ff25fc1e810
 
     def _resize_to_million_pixels(self, W, H):
         aspect_ratio = W / H

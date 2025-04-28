@@ -55,6 +55,7 @@ NODE_CLASS_MAPPINGS = {
 
     #文件处理：meyo_node_File
     "LoadAndAdjustImage": LoadAndAdjustImage,
+    "GenericImageLoader": GenericImageLoader,
     "ImageAdjuster": ImageAdjuster,
     "CustomCrop": CustomCrop,
     "SaveImagEX": SaveImagEX, 
@@ -123,6 +124,10 @@ NODE_DISPLAY_NAME_MAPPINGS = {
 
    #文件处理：meyo_node_File
    "LoadAndAdjustImage": "加载重置图像🐠meeeyo.com",
+<<<<<<< HEAD
+   "GenericImageLoader": "全能加载图像🐠meeeyo.com",
+=======
+>>>>>>> 79ed250c5d0d1f11fccbec9087431ff25fc1e810
    "ImageAdjuster": "重置图像🐠meeeyo.com",
    "CustomCrop": "裁剪图像🐠meeeyo.com",
    "SaveImagEX": "保存图像🐠meeeyo.com",
