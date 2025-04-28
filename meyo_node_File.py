@@ -691,9 +691,6 @@ class FileDeleteNode:
 
 #======文件路径和后缀统计
 class FileListAndSuffix:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -731,9 +728,6 @@ class FileListAndSuffix:
 
 #======读取表格数据
 class ReadExcelData:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -791,9 +785,6 @@ class ReadExcelData:
 
 #======写入表格数据
 class WriteExcelData:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -932,9 +923,6 @@ class WriteExcelImage:
 
 #======查找表格数据
 class FindExcelData:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -959,45 +947,37 @@ class FindExcelData:
         try:
             if not os.path.exists(excel_path):
                 return (f"Error: File does not exist at path: {excel_path}", None, None)
-
             if not os.access(excel_path, os.R_OK):
                 return (f"Error: No read permission for file at path: {excel_path}", None, None)
-
             workbook = openpyxl.load_workbook(excel_path, read_only=True, data_only=True)
             sheet = workbook[sheet_name]
 
             results = []
             found_row = None
             found_col = None
-
             for row in range(1, sheet.max_row + 1):
                 for col in range(1, sheet.max_column + 1):
                     cell = sheet.cell(row=row, column=col)
                     cell_value = cell.value if cell.value is not None else ""
-
-                    if (search_mode == "精确查找" and cell_value == search_content) or \
-                       (search_mode == "模糊查找" and search_content in cell_value):
+                    cell_value_str = str(cell_value)
+                    if (search_mode == "精确查找" and cell_value_str == search_content) or \
+                       (search_mode == "模糊查找" and search_content in cell_value_str):
                         results.append(f"{sheet_name}|{row}|{col}|{cell_value}")
-                        found_row = row 
+                        found_row = row
                         found_col = col
 
             workbook.close()
             del workbook
-
             if not results:
                 return ("No results found.", None, None)
-
             return ("\n".join(results), found_row, found_col)
-
         except Exception as e:
             return (f"Error: {str(e)}", None, None)
 
 
+
 #======读取表格数量差
 class ReadExcelRowOrColumnDiff:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
