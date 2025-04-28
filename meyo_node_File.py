@@ -159,7 +159,6 @@ class LoadAndAdjustImage:
         return width, height
 
 
-
 #======重置图像
 class ImageAdjuster:
     @classmethod
@@ -167,6 +166,7 @@ class ImageAdjuster:
         return {
             "required": {
                 "image": ("IMAGE",),
+                "mask": ("MASK",),  # 添加遮罩输入
                 "max_dimension": ("INT", {"default": 0, "min": 0, "max": 4096, "step": 8}),
                 "size_option": ([
                     "Custom", "Million Pixels", "Small", "Medium", "Large", 
@@ -176,33 +176,60 @@ class ImageAdjuster:
             }
         }
 
-    RETURN_TYPES = ("IMAGE", "INT", "INT")
-    RETURN_NAMES = ("image", "width", "height")
+    RETURN_TYPES = ("IMAGE", "MASK", "INT", "INT")
+    RETURN_NAMES = ("image", "mask", "width", "height")
     FUNCTION = "process_image"
     CATEGORY = "Meeeyo/File"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
     
-    def IS_CHANGED():
+    def IS_CHANGED(self):
         return float("NaN")
 
+<<<<<<< HEAD
+    def process_image(self, image, mask, max_dimension=1024, size_option="Custom"):
+        batch_size = image.shape[0]
+        processed_images = []
+        processed_masks = []
+=======
     def process_image(self, image, max_dimension=1024, size_option="Custom"):
         batch_size = image.shape[0]
         processed_images = []
+>>>>>>> db71d026f74322a6e66276701198bfe8b5d44ad8
         widths = []
         heights = []
 
         for i in range(batch_size):
             current_image = image[i]
+<<<<<<< HEAD
+            current_mask = mask[i]
+            
             input_pil_image = Image.fromarray((current_image.numpy() * 255).astype(np.uint8))
+            input_pil_mask = Image.fromarray((current_mask.numpy() * 255).astype(np.uint8))
+            
+=======
+            input_pil_image = Image.fromarray((current_image.numpy() * 255).astype(np.uint8))
+>>>>>>> db71d026f74322a6e66276701198bfe8b5d44ad8
             W, H = input_pil_image.size
 
             processed_image_pil = input_pil_image.copy()
             processed_image_pil = ImageOps.exif_transpose(processed_image_pil)
 
+<<<<<<< HEAD
+            processed_mask_pil = input_pil_mask.copy()
+            processed_mask_pil = ImageOps.exif_transpose(processed_mask_pil)
+
+=======
+>>>>>>> db71d026f74322a6e66276701198bfe8b5d44ad8
             if processed_image_pil.mode == 'P':
                 processed_image_pil = processed_image_pil.convert("RGBA")
             elif 'A' in processed_image_pil.getbands():
                 processed_image_pil = processed_image_pil.convert("RGBA")
+<<<<<<< HEAD
+
+            if processed_mask_pil.mode != "L":
+                processed_mask_pil = processed_mask_pil.convert("L")
+=======
+>>>>>>> db71d026f74322a6e66276701198bfe8b5d44ad8
 
             if size_option != "Custom":
                 aspect_ratio = W / H
@@ -235,6 +262,11 @@ class ImageAdjuster:
                 target_width, target_height = size_options[size_option]
                 processed_image_pil = processed_image_pil.convert("RGB")
                 processed_image_pil = ImageOps.fit(processed_image_pil, (target_width, target_height), method=Image.Resampling.BILINEAR, centering=(0.5, 0.5))
+<<<<<<< HEAD
+                
+                processed_mask_pil = ImageOps.fit(processed_mask_pil, (target_width, target_height), method=Image.Resampling.BILINEAR, centering=(0.5, 0.5))
+=======
+>>>>>>> db71d026f74322a6e66276701198bfe8b5d44ad8
             else:
                 ratio = min(max_dimension / W, max_dimension / H)
                 adjusted_width = round(W * ratio)
@@ -242,11 +274,23 @@ class ImageAdjuster:
 
                 processed_image_pil = processed_image_pil.convert("RGB")
                 processed_image_pil = processed_image_pil.resize((adjusted_width, adjusted_height), Image.Resampling.BILINEAR)
+<<<<<<< HEAD
+                
+                processed_mask_pil = processed_mask_pil.resize((adjusted_width, adjusted_height), Image.Resampling.BILINEAR)
+=======
+>>>>>>> db71d026f74322a6e66276701198bfe8b5d44ad8
 
             processed_image = np.array(processed_image_pil).astype(np.float32) / 255.0
             processed_image = torch.from_numpy(processed_image)
             processed_images.append(processed_image)
 
+<<<<<<< HEAD
+            processed_mask = np.array(processed_mask_pil).astype(np.float32) / 255.0
+            processed_mask = torch.from_numpy(processed_mask)
+            processed_masks.append(processed_mask)
+
+=======
+>>>>>>> db71d026f74322a6e66276701198bfe8b5d44ad8
             if size_option != "Custom":
                 widths.append(target_width)
                 heights.append(target_height)
@@ -255,11 +299,20 @@ class ImageAdjuster:
                 heights.append(adjusted_height)
 
         output_image = torch.stack(processed_images)
+<<<<<<< HEAD
+        output_mask = torch.stack(processed_masks)
+        
+        if all(w == widths[0] for w in widths) and all(h == heights[0] for h in heights):
+            return (output_image, output_mask, widths[0], heights[0])
+        else:
+            return (output_image, output_mask, widths[0], heights[0])
+=======
         
         if all(w == widths[0] for w in widths) and all(h == heights[0] for h in heights):
             return (output_image, widths[0], heights[0])
         else:
             return (output_image, widths[0], heights[0])
+>>>>>>> db71d026f74322a6e66276701198bfe8b5d44ad8
 
     def _resize_to_million_pixels(self, W, H):
         aspect_ratio = W / H
@@ -286,13 +339,14 @@ class CustomCrop:
         return {
             "required": {
                 "image": ("IMAGE",),
+                "mask": ("MASK",),  # 新增遮罩输入
                 "width": ("INT", {"default": 768, "min": 0, "max": 4096, "step": 8}),
                 "height": ("INT", {"default": 768, "min": 0, "max": 4096, "step": 8}),
             }
         }
 
-    RETURN_TYPES = ("IMAGE", "INT", "INT")
-    RETURN_NAMES = ("image", "width", "height")
+    RETURN_TYPES = ("IMAGE", "MASK", "INT", "INT")  # 新增遮罩输出
+    RETURN_NAMES = ("image", "mask", "width", "height")
     FUNCTION = "process_image"
     CATEGORY = "Meeeyo/File"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
@@ -300,11 +354,14 @@ class CustomCrop:
     def IS_CHANGED():
         return float("NaN")
 
-    def process_image(self, image, width=768, height=768):
+    def process_image(self, image, mask, width=768, height=768):
         input_image = Image.fromarray((image.squeeze(0).numpy() * 255).astype(np.uint8))
+        input_mask = Image.fromarray((mask.squeeze(0).numpy() * 255).astype(np.uint8))  # 转换遮罩为PIL图像
+        
         W, H = input_image.size
 
         processed_images = []
+        processed_masks = []  # 新增遮罩处理列表
 
         for frame in [input_image]:
             frame = ImageOps.exif_transpose(frame)
@@ -321,9 +378,18 @@ class CustomCrop:
             processed_image = torch.from_numpy(processed_image)[None,]
             processed_images.append(processed_image)
 
-        output_image = torch.cat(processed_images, dim=0) if len(processed_images) > 1 else processed_images[0]
+        # 处理遮罩
+        input_mask = ImageOps.exif_transpose(input_mask)
+        processed_mask = input_mask.convert("L")  # 确保遮罩是灰度图像
+        processed_mask = ImageOps.fit(processed_mask, (width, height), method=Image.Resampling.BILINEAR, centering=(0.5, 0.5))
+        processed_mask = np.array(processed_mask).astype(np.float32) / 255.0
+        processed_mask = torch.from_numpy(processed_mask)[None,]
+        processed_masks.append(processed_mask)
 
-        return (output_image, width, height)
+        output_image = torch.cat(processed_images, dim=0) if len(processed_images) > 1 else processed_images[0]
+        output_mask = torch.cat(processed_masks, dim=0) if len(processed_masks) > 1 else processed_masks[0]
+
+        return (output_image, output_mask, width, height)
 
 
 #======保存图像
