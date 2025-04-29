@@ -51,6 +51,8 @@ NODE_CLASS_MAPPINGS = {
     "TextConcatenation": TextConcatenation,
     "ExtractSpecificData": ExtractSpecificData,
     "FindFirstLineContent": FindFirstLineContent,
+    "GetIntParam": GetIntParam,
+    "GetFloatParam": GetFloatParam,
     "GenerateVideoPrompt": GenerateVideoPrompt,
 
     #文件处理：meyo_node_File
@@ -73,7 +75,6 @@ NODE_CLASS_MAPPINGS = {
     #功能型节点：meyo_node_Functional
     "GetCurrentTime": GetCurrentTime,
     "SimpleRandomSeed": SimpleRandomSeed,
-    "SplitIntegers": SplitIntegers,
     "SelectionParameter": SelectionParameter,
     "ReadWebNode": ReadWebNode,
 }
@@ -120,6 +121,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
    "TextConcatenation": "文本组合🐠meeeyo.com",
    "ExtractSpecificData": "提取多层指定数据🐠meeeyo.com",
    "FindFirstLineContent": "指定字符行参数🐠meeeyo.com",
+   "GetIntParam": "获取整数🐠meeeyo.com",
+   "GetFloatParam": "获取浮点数🐠meeeyo.com",
    "GenerateVideoPrompt": "视频指令词模板🐠meeeyo.com",
 
    #文件处理：meyo_node_File
@@ -142,8 +145,6 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     #功能型节点：meyo_node_Functional
    "GetCurrentTime": "当前时间(戳)🐠meeeyo.com",
    "SimpleRandomSeed": "随机整数🐠meeeyo.com", 
-   "SplitIntegers": "整数参数🐠meeeyo.com",  
-
    "SelectionParameter": "选择参数🐠meeeyo.com",
    "ReadWebNode": "读取页面🐠meeeyo.com",
 }
