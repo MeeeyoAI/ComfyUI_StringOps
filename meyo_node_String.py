@@ -1,10 +1,4 @@
-import datetime
-import random
-import secrets
-import requests
-import string
-import math
-import re
+import re, math, datetime, random, secrets, requests, string
 from . import AnyType, any_typ
 
 
@@ -68,12 +62,12 @@ class TextConcatenator:
     def INPUT_TYPES(cls):
         return {
             "optional": {
-                "text1": ("STRING", {"multiline": True, "default": ""}),
-                "text2": ("STRING", {"multiline": True, "default": ""}),
-                "text3": ("STRING", {"multiline": True, "default": ""}),
-                "text4": ("STRING", {"multiline": True, "default": ""}),
+                "text1": ("STRING", {"multiline": False, "default": "", "forceInput": True}),  
+                "text2": ("STRING", {"multiline": False, "default": "", "forceInput": True}),  
+                "text3": ("STRING", {"multiline": False, "default": "", "forceInput": True}),  
+                "text4": ("STRING", {"multiline": False, "default": "", "forceInput": True}),  
                 "combine_order": ("STRING", {"default": ""}),
-                "separator": ("STRING", {"default": ","})  # 添加分隔符输入框，默认为逗号
+                "separator": ("STRING", {"default": ","})
             },
         }
 
@@ -104,11 +98,10 @@ class TextConcatenator:
                     return (f"Error: Invalid input '{part}' in combine_order. Valid options are 1, 2, 3, 4.",)
             non_empty_texts = [text_map[part] for part in valid_parts if text_map[part]]
             
-            # 特殊处理换行符
             if separator == '\\n':
                 separator = '\n'
             
-            result = separator.join(non_empty_texts)  # 使用自定义分隔符
+            result = separator.join(non_empty_texts) 
             return (result,)
         except Exception as e:
             return (f"Error: {str(e)}",)
@@ -120,14 +113,14 @@ class MultiParamInputNode:
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "text1": ("STRING", {"default": "", "multiline": True}),  # 第一个多行文本输入框
-                "text2": ("STRING", {"default": "", "multiline": True}),  # 第二个多行文本输入框
-                "int1": ("INT", {"default": 0, "min": -1000000, "max": 1000000}),  # 第一个整数输入框
-                "int2": ("INT", {"default": 0, "min": -1000000, "max": 1000000}),  # 第二个整数输入框
+                "text1": ("STRING", {"default": "", "multiline": True}),  
+                "text2": ("STRING", {"default": "", "multiline": True}), 
+                "int1": ("INT", {"default": 0, "min": -1000000, "max": 1000000}),  
+                "int2": ("INT", {"default": 0, "min": -1000000, "max": 1000000}), 
             }
         }
 
-    RETURN_TYPES = ("STRING", "STRING", "INT", "INT")  # 返回两个字符串和两个整数
+    RETURN_TYPES = ("STRING", "STRING", "INT", "INT")
     FUNCTION = "process_inputs"
     OUTPUT_NODE = False
     CATEGORY = "Meeeyo/String"
@@ -146,30 +139,42 @@ class NumberExtractor:
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "int1": ("INT", {"default": 0, "min": -1000000, "max": 1000000}),  # 第一个整数输入框
-                "int2": ("INT", {"default": 0, "min": -1000000, "max": 1000000}),  # 第二个整数输入框
-            }
+                "input_text": ("STRING", {"default": "2|3"}),
+            },
+            "optional": {},
         }
 
-    RETURN_TYPES = ("INT", "INT")  # 返回两个整数
-    FUNCTION = "process_inputs"
-    OUTPUT_NODE = False
+    RETURN_TYPES = ("INT", "INT")
+    FUNCTION = "extract_lines_by_index"
+    OUTPUT_TYPES = ("INT", "INT")
     CATEGORY = "Meeeyo/String"
     DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
     
     def IS_CHANGED():
         return float("NaN")
     
-    def process_inputs(self, int1, int2):
-        return (int1, int2)
+    def extract_lines_by_index(self, input_text):
+        try:
+            data_list = input_text.split("|")
+            
+            result = []
+            for i in range(2): 
+                if i < len(data_list):
+                    try:
+                        result.append(int(data_list[i]))
+                    except ValueError:
+                        result.append(0)
+                else:
+                    result.append(0)
+            
+            return tuple(result)
+        except:
+            return (0, 0)
 
 
 
 #======添加前后缀
 class AddPrefixSuffix:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -192,11 +197,9 @@ class AddPrefixSuffix:
     def add_prefix_suffix(self, input_string, prefix, suffix):
         return (f"{prefix}{input_string}{suffix}",)
 
+
 #======提取标签之间
 class ExtractSubstring:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -241,9 +244,6 @@ class ExtractSubstring:
 
 #======按数字范围提取
 class ExtractSubstringByIndices:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -295,9 +295,6 @@ class ExtractSubstringByIndices:
 			
 #======分隔符拆分两边
 class SplitStringByDelimiter:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -325,9 +322,6 @@ class SplitStringByDelimiter:
 
 #======常规处理字符
 class ProcessString:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -380,9 +374,6 @@ class ProcessString:
 
 #======提取前后字符
 class ExtractBeforeAfter:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -449,11 +440,9 @@ class SimpleTextReplacer:
     
     def replace_text(self, input_string, find_text, replace_text):
         try:
-            # 如果find_text为空，则不进行替换
             if not find_text:
                 return (input_string,)
-            
-            # 如果replace_text是\n，则替换成换行符
+
             if replace_text == '\\n':
                 replace_text = '\n'
             
@@ -465,9 +454,6 @@ class SimpleTextReplacer:
 
 #======替换第n次出现
 class ReplaceNthOccurrence:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -504,9 +490,6 @@ class ReplaceNthOccurrence:
 
 #======多次出现依次替换
 class ReplaceMultiple:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -544,9 +527,6 @@ class ReplaceMultiple:
 
 #======批量替换字符
 class BatchReplaceStrings:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -583,9 +563,6 @@ class BatchReplaceStrings:
 
 #======随机行内容
 class RandomLineFromText:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -616,9 +593,6 @@ class RandomLineFromText:
 
 #======判断是否包含字符
 class CheckSubstringPresence:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -654,9 +628,6 @@ class CheckSubstringPresence:
 
 #======段落每行添加前后缀
 class AddPrefixSuffixToLines:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -687,9 +658,6 @@ class AddPrefixSuffixToLines:
 
 #======段落提取指定索引行
 class ExtractAndCombineLines:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -732,9 +700,6 @@ class ExtractAndCombineLines:
 
 #======段落提取或移除字符行
 class FilterLinesBySubstrings:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -771,9 +736,6 @@ class FilterLinesBySubstrings:
 
 #======根据字数范围过滤文本行
 class FilterLinesByWordCount:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -809,9 +771,6 @@ class FilterLinesByWordCount:
 
 #======按序号提取分割文本
 class SplitAndExtractText:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -869,9 +828,6 @@ class SplitAndExtractText:
 
 #======文本出现次数
 class CountOccurrences:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -903,9 +859,6 @@ class CountOccurrences:
 
 #======文本拆分：根据索引和特定字符获取多行文本中的行内容
 class ExtractLinesByIndex:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -948,9 +901,6 @@ class ExtractLinesByIndex:
 
 #======提取特定行
 class ExtractSpecificLines:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -998,9 +948,6 @@ class ExtractSpecificLines:
 
 #======删除标签内的内容
 class RemoveContentBetweenChars:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -1035,9 +982,6 @@ class RemoveContentBetweenChars:
 
 #======随机打乱
 class ShuffleTextLines:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -1082,9 +1026,6 @@ class ShuffleTextLines:
 
 #======判断返回内容
 class ConditionalTextOutput:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -1117,9 +1058,6 @@ class ConditionalTextOutput:
 
 #======文本按条件判断
 class TextConditionCheck:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -1168,9 +1106,6 @@ class TextConditionCheck:
 
 #======文本组合
 class TextConcatenation:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -1212,9 +1147,6 @@ class TextConcatenation:
 
 #======提取多层指定数据
 class ExtractSpecificData:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -1303,9 +1235,6 @@ class ExtractSpecificData:
 
 #======指定字符行参数
 class FindFirstLineContent:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -1339,12 +1268,91 @@ class FindFirstLineContent:
             return (f"Error: {str(e)}",) 
         
 
+#======获取整数
+class GetIntParam:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "input_text": ("STRING", {"multiline": False, "default": "", "forceInput": True}),  
+                "target_char": ("STRING", {"default": ""}),  
+            },
+            "optional": {},
+        }
+
+    RETURN_TYPES = ("INT", "STRING",)
+    FUNCTION = "find_first_line_content"
+    CATEGORY = "Meeeyo/String"
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
+    def IS_CHANGED():
+        return float("NaN")
+    
+    def find_first_line_content(self, input_text, target_char):
+        try:
+            lines = input_text.splitlines()
+
+            for line in lines:
+                if target_char in line:
+                    start_index = line.index(target_char)
+                    result_str = line[start_index + len(target_char):]
+                    try:
+                        result_int = int(result_str)
+                    except ValueError:
+                        result_int = None
+                    
+                    return (result_int, result_str)
+
+            return ("", None)
+
+        except Exception as e:
+            return (f"Error: {str(e)}", None)
+
+
+#======获取浮点数
+class GetFloatParam:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "input_text": ("STRING", {"multiline": False, "default": "", "forceInput": True}),  
+                "target_char": ("STRING", {"default": ""}),  
+            },
+            "optional": {},
+        }
+
+    RETURN_TYPES = ("FLOAT", "STRING",) 
+    FUNCTION = "find_first_line_content"
+    CATEGORY = "Meeeyo/String"
+    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
+    
+    def IS_CHANGED():
+        return float("NaN")
+    
+    def find_first_line_content(self, input_text, target_char):
+        try:
+            lines = input_text.splitlines()
+
+            for line in lines:
+                if target_char in line:
+                    start_index = line.index(target_char)
+                    result_str = line[start_index + len(target_char):]
+                    try:
+                        result_float = float(result_str)
+                    except ValueError:
+                        result_float = None  
+                    
+                    return (result_float, result_str) 
+
+            return (None, "")  
+
+        except Exception as e:
+            return (None, f"Error: {str(e)}") 
+
+
 
 #======视频指令词模板
 class GenerateVideoPrompt:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
