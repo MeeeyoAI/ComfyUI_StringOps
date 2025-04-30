@@ -1,10 +1,10 @@
-import time
-import secrets
-import requests
-import base64
-import random
+import os, time, secrets, requests, base64, random
+import folder_paths
+import numpy as np
+from PIL import Image
 from datetime import datetime
-from . import AnyType, any_typ
+from . import any_typ, note
+
 
 
 #======当前时间(戳)
@@ -21,10 +21,9 @@ class GetCurrentTime:
     RETURN_TYPES = ("STRING", "INT")
     FUNCTION = "get_current_time"
     CATEGORY = "Meeeyo/Functional"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def get_current_time(self, prefix, any=None):
         current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         timestamp = int(time.time() * 1000)
@@ -43,10 +42,9 @@ class SimpleRandomSeed:
     RETURN_TYPES = ("STRING", "INT")
     FUNCTION = "generate_random_seed"
     CATEGORY = "Meeeyo/Functional"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def generate_random_seed(self, any=None):
         try:
             length = random.randint(8, 12)
@@ -75,10 +73,9 @@ class SelectionParameter:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "gender_output"
     CATEGORY = "Meeeyo/Functional"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def gender_output(self, gender, version, additional_text, any=None):
         gender_value = 1 if gender == "男性" else 2
         version_value = 1 if version == "竖版" else 2
@@ -86,7 +83,6 @@ class SelectionParameter:
         combined_result = f"{result}\n\n{additional_text.strip()}"
         return (combined_result,)
     
-
 
 #======读取页面
 class ReadWebNode:
@@ -103,11 +99,9 @@ class ReadWebNode:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "fetch_data"
     CATEGORY = "Meeeyo/Functional"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def fetch_data(self, Instruction, prefix_suffix, any=None):
         if "|" in prefix_suffix:
             prefix, suffix = prefix_suffix.split("|", 1)
@@ -125,3 +119,43 @@ class ReadWebNode:
             return (response_text,)
         except requests.RequestException as e:
             return ('Error！解析失败，请检查后重试！',)
+        
+
+#===VAE解码预览
+class DecodePreview:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "latent": ("LATENT",),
+                "vae": ("VAE",)
+            },
+        }
+
+    RETURN_TYPES = ("IMAGE",)
+    FUNCTION = "preview"
+    OUTPUT_NODE = True
+    CATEGORY = "Meeeyo/Functional"
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
+    def preview(self, latent, vae, filename_prefix="Preview", prompt=None, extra_pnginfo=None):
+        images = vae.decode(latent["samples"])
+        save_path, filename, counter, _, _ = folder_paths.get_save_image_path(
+            filename_prefix, folder_paths.get_temp_directory(), images[0].shape[1], images[0].shape[0]
+        )
+        results = []
+        for img in images:
+            img_pil = Image.fromarray(np.clip(255.0 * img.cpu().numpy(), 0, 255).astype(np.uint8))
+            file_path = os.path.join(save_path, f"{filename}_{counter:05}.png")
+            img_pil.save(file_path, compress_level=0)
+            
+            results.append({
+                "filename": f"{filename}_{counter:05}.png",
+                "subfolder": os.path.relpath(save_path, folder_paths.get_temp_directory()),
+                "type": "temp"
+            })
+            counter += 1
+
+        return {"ui": {"images": results}, "result": (images,)}
+    
