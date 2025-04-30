@@ -1,16 +1,11 @@
-import math
-import random
-import torch
+import math, random, torch
 import numpy as np
-from . import AnyType, any_typ
+from . import any_typ, note
 
 
 
 #======比较数值
 class CompareInt:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -24,11 +19,9 @@ class CompareInt:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "compare_float_to_range"
     CATEGORY = "Meeeyo/Number"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def compare_float_to_range(self, input_float, range, any=None):
         try:
             if '-' in range:
@@ -44,11 +37,9 @@ class CompareInt:
         except ValueError:
             return ("Error: Invalid input format.",) 
 
+
 #======规范数值
 class FloatToInteger:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -62,11 +53,8 @@ class FloatToInteger:
     RETURN_TYPES = ("INT",)
     FUNCTION = "convert_float_to_integer"
     CATEGORY = "Meeeyo/Number"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
 
     def convert_float_to_integer(self, float_value, operation, any=None):
         if operation == "四舍五入":
@@ -82,9 +70,6 @@ class FloatToInteger:
 
 #======生成范围数组
 class GenerateNumbers:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -99,11 +84,9 @@ class GenerateNumbers:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "generate_numbers"
     CATEGORY = "Meeeyo/Number"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def generate_numbers(self, range_rule, mode, prefix_suffix, any=None):
         try:
             start_str, range_str = range_rule.split('|')
@@ -130,9 +113,6 @@ class GenerateNumbers:
 
 #======范围内随机数
 class GetRandomIntegerInRange:
-    def __init__(self):
-        pass
-
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -145,11 +125,9 @@ class GetRandomIntegerInRange:
     RETURN_TYPES = ("INT", "STRING")
     FUNCTION = "get_random_integer_in_range"
     CATEGORY = "Meeeyo/Number"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def get_random_integer_in_range(self, range_str, any=None):
         try:
             start, end = map(int, range_str.split('-'))
