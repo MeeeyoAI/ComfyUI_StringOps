@@ -1,8 +1,9 @@
+import base64
+note = base64.b64decode("44CQ6KeF6bG8QUnnu5jnlLvjgJHlpoLpnIDmm7TlpJrluK7liqnmiJbllYbliqHpnIDmsYIgK3Z4OiBtZWVleW8=").decode('utf-8')
 class AnyType(str):
     def __ne__(self, __value: object) -> bool:
         return False
 any_typ = AnyType("*")
-
 from .meyo_node_Computational import  *
 from .meyo_node_String import  *
 from .meyo_node_File import *
@@ -77,6 +78,7 @@ NODE_CLASS_MAPPINGS = {
     "SimpleRandomSeed": SimpleRandomSeed,
     "SelectionParameter": SelectionParameter,
     "ReadWebNode": ReadWebNode,
+    "DecodePreview": DecodePreview,     
 }
 
 
@@ -147,6 +149,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
    "SimpleRandomSeed": "随机整数🐠meeeyo.com", 
    "SelectionParameter": "选择参数🐠meeeyo.com",
    "ReadWebNode": "读取页面🐠meeeyo.com",
+   "DecodePreview": "解码预览🐠meeeyo.com",
 }
 
 
