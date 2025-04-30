@@ -1,5 +1,6 @@
 import re, math, datetime, random, secrets, requests, string
-from . import AnyType, any_typ
+from . import any_typ, note
+
 
 
 #======文本输入
@@ -16,11 +17,9 @@ class SingleTextInput:
     FUNCTION = "process_input"
     OUTPUT_NODE = False
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def process_input(self, text):
         return (text,)
 
@@ -40,11 +39,9 @@ class TextToList:
     FUNCTION = "split_text"
     OUTPUT_IS_LIST = (True,)
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def split_text(self, text, delimiter):
         if not delimiter:
             parts = text.split('\n')
@@ -74,11 +71,9 @@ class TextConcatenator:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "combine_texts"
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def combine_texts(self, text1, text2, text3, text4, combine_order, separator):
         try:
             text_map = {
@@ -124,11 +119,9 @@ class MultiParamInputNode:
     FUNCTION = "process_inputs"
     OUTPUT_NODE = False
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def process_inputs(self, text1, text2, int1, int2):
         return (text1, text2, int1, int2)
 
@@ -148,11 +141,9 @@ class NumberExtractor:
     FUNCTION = "extract_lines_by_index"
     OUTPUT_TYPES = ("INT", "INT")
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def extract_lines_by_index(self, input_text):
         try:
             data_list = input_text.split("|")
@@ -172,7 +163,6 @@ class NumberExtractor:
             return (0, 0)
 
 
-
 #======添加前后缀
 class AddPrefixSuffix:
     @classmethod
@@ -189,11 +179,9 @@ class AddPrefixSuffix:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "add_prefix_suffix"
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def add_prefix_suffix(self, input_string, prefix, suffix):
         return (f"{prefix}{input_string}{suffix}",)
 
@@ -213,11 +201,9 @@ class ExtractSubstring:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "extract_substring"
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def extract_substring(self, input_string, pattern):
         try:
             parts = pattern.split('|')
@@ -242,6 +228,7 @@ class ExtractSubstring:
         except ValueError:
             return ("",)
 
+
 #======按数字范围提取
 class ExtractSubstringByIndices:
     @classmethod
@@ -258,11 +245,9 @@ class ExtractSubstringByIndices:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "extract_substring_by_indices"
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def extract_substring_by_indices(self, input_string, indices, direction):
         try:
             if '-' in indices:
@@ -293,6 +278,7 @@ class ExtractSubstringByIndices:
         except ValueError:
             return ("",)
 			
+
 #======分隔符拆分两边
 class SplitStringByDelimiter:
     @classmethod
@@ -308,17 +294,16 @@ class SplitStringByDelimiter:
     RETURN_TYPES = ("STRING", "STRING")
     FUNCTION = "split_string_by_delimiter"
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def split_string_by_delimiter(self, input_string, delimiter):
         parts = input_string.split(delimiter, 1)
         if len(parts) == 2:
             return (parts[0], parts[1])
         else:
             return (input_string, "")
+
 
 #======常规处理字符
 class ProcessString:
@@ -335,11 +320,9 @@ class ProcessString:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "process_string"
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def process_string(self, input_string, option):
         if option == "取数字":
             result = ''.join(re.findall(r'\d', input_string))
@@ -372,6 +355,7 @@ class ProcessString:
     def is_chinese(char):
         return '\u4e00' <= char <= '\u9fff'
 
+
 #======提取前后字符
 class ExtractBeforeAfter:
     @classmethod
@@ -389,11 +373,9 @@ class ExtractBeforeAfter:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "extract_before_after"
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def extract_before_after(self, input_string, pattern, position, include_delimiter):
         if position == "保留最初之前":
             index = input_string.find(pattern)
@@ -433,11 +415,9 @@ class SimpleTextReplacer:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "replace_text"
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def replace_text(self, input_string, find_text, replace_text):
         try:
             if not find_text:
@@ -469,11 +449,9 @@ class ReplaceNthOccurrence:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "replace_nth_occurrence"
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def replace_nth_occurrence(self, original_text, occurrence, search_str, replace_str):
         if occurrence == 0:
             result = original_text.replace(search_str, replace_str)
@@ -503,11 +481,9 @@ class ReplaceMultiple:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "replace_multiple"
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def replace_multiple(self, original_text, replacement_rule):
         try:
             search_str, replacements = replacement_rule.split('|')
@@ -525,6 +501,7 @@ class ReplaceMultiple:
         except ValueError:
             return ("",)
 
+
 #======批量替换字符
 class BatchReplaceStrings:
     @classmethod
@@ -540,11 +517,9 @@ class BatchReplaceStrings:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "batch_replace_strings"
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def batch_replace_strings(self, original_text, replacement_rules):
         rules = replacement_rules.strip().split('\n')
         for rule in rules:
@@ -575,20 +550,14 @@ class RandomLineFromText:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "get_random_line"
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
-    def IS_CHANGED():
-        return float("NaN")
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
 
     def get_random_line(self, input_text, any=None):
         lines = input_text.strip().splitlines()
         if not lines:
             return ("",)  
         return (random.choice(lines),)
-
 
 
 #======判断是否包含字符
@@ -607,11 +576,9 @@ class CheckSubstringPresence:
     RETURN_TYPES = ("INT",)
     FUNCTION = "check_substring_presence"
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def check_substring_presence(self, input_text, substring, mode):
         substrings = substring.split('|')
 
@@ -625,6 +592,7 @@ class CheckSubstringPresence:
                 if sub in input_text:
                     return (1,)
             return (0,)
+
 
 #======段落每行添加前后缀
 class AddPrefixSuffixToLines:
@@ -641,11 +609,9 @@ class AddPrefixSuffixToLines:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "add_prefix_suffix_to_lines"
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def add_prefix_suffix_to_lines(self, prefix_suffix, input_text):
         try:
             prefix, suffix = prefix_suffix.split('|')
@@ -655,6 +621,7 @@ class AddPrefixSuffixToLines:
             return (result,)
         except ValueError:
             return ("",)  
+
 
 #======段落提取指定索引行
 class ExtractAndCombineLines:
@@ -671,11 +638,9 @@ class ExtractAndCombineLines:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "extract_and_combine_lines"
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def extract_and_combine_lines(self, input_text, line_indices):
         try:
             lines = input_text.splitlines()
@@ -714,11 +679,9 @@ class FilterLinesBySubstrings:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "filter_lines_by_substrings"
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def filter_lines_by_substrings(self, input_text, substrings, action):
         lines = input_text.splitlines()
         substring_list = substrings.split('|')
@@ -749,11 +712,9 @@ class FilterLinesByWordCount:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "filter_lines_by_word_count"
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def filter_lines_by_word_count(self, input_text, word_count_range):
         try:
             lines = input_text.splitlines()
@@ -787,11 +748,9 @@ class SplitAndExtractText:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "split_and_extract"
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def split_and_extract(self, input_text, delimiter, index, order, include_delimiter):
         try:
             if not delimiter:
@@ -826,6 +785,7 @@ class SplitAndExtractText:
         except ValueError:
             return ("",)
 
+
 #======文本出现次数
 class CountOccurrences:
     @classmethod
@@ -841,11 +801,9 @@ class CountOccurrences:
     RETURN_TYPES = ("INT", "STRING")
     FUNCTION = "count_text_segments"
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def count_text_segments(self, input_text, char):
         try:
             if char == "\\n":
@@ -857,7 +815,8 @@ class CountOccurrences:
         except ValueError:
             return (0, "0")
 
-#======文本拆分：根据索引和特定字符获取多行文本中的行内容
+
+#======文本拆分
 class ExtractLinesByIndex:
     @classmethod
     def INPUT_TYPES(cls):
@@ -875,11 +834,9 @@ class ExtractLinesByIndex:
     OUTPUT_TYPES = ("STRING", "STRING", "STRING", "STRING", "STRING")
     OUTPUT_NAMES = ("文本1", "文本2", "文本3", "文本4", "文本5")
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def extract_lines_by_index(self, input_text, index, delimiter):
         try:
             if delimiter == "" or delimiter == "\n":
@@ -899,6 +856,7 @@ class ExtractLinesByIndex:
         except ValueError:
             return ("", "", "", "", "") 
 
+
 #======提取特定行
 class ExtractSpecificLines:
     @classmethod
@@ -915,11 +873,9 @@ class ExtractSpecificLines:
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING", "STRING", "STRING")
     FUNCTION = "extract_specific_lines"
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def extract_specific_lines(self, input_text, line_indices, split_char):
         if not split_char or split_char == "\n":
             lines = input_text.split('\n')
@@ -946,6 +902,7 @@ class ExtractSpecificLines:
         
         return tuple(results[:5] + [combined_result])
 
+
 #======删除标签内的内容
 class RemoveContentBetweenChars:
     @classmethod
@@ -961,11 +918,9 @@ class RemoveContentBetweenChars:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "remove_content_between_chars"
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def remove_content_between_chars(self, input_text, chars):
         try:
             if len(chars) == 3 and chars[1] == '|':
@@ -979,6 +934,7 @@ class RemoveContentBetweenChars:
             return (result,)
         except ValueError:
             return ("",)  
+
 
 #======随机打乱
 class ShuffleTextLines:
@@ -995,13 +951,8 @@ class ShuffleTextLines:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "shuffle_text_lines"
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
-    def IS_CHANGED():
-        return float("NaN")
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
 
     def shuffle_text_lines(self, input_text, delimiter, any=None):
         if delimiter == "":
@@ -1024,6 +975,7 @@ class ShuffleTextLines:
 
         return (result,)
 
+
 #======判断返回内容
 class ConditionalTextOutput:
     @classmethod
@@ -1041,11 +993,9 @@ class ConditionalTextOutput:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "conditional_text_output"
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def conditional_text_output(self, original_content, check_text, text_if_exists, text_if_not_exists):
         if not check_text:
             return ("",)
@@ -1072,11 +1022,9 @@ class TextConditionCheck:
     RETURN_TYPES = ("INT", "STRING")
     FUNCTION = "text_condition_check"
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def text_condition_check(self, original_content, length_condition, frequency_condition):
         length_valid = self.check_length_condition(original_content, length_condition)
         
@@ -1120,11 +1068,9 @@ class TextConcatenation:
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING", "STRING")
     FUNCTION = "text_concatenation"
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def text_concatenation(self, original_text, concatenation_rules, split_char):
         if split_char:
             original_lines = [line.strip() for line in original_text.split(split_char) if line.strip()]
@@ -1145,6 +1091,7 @@ class TextConcatenation:
 
         return tuple(outputs)
 
+
 #======提取多层指定数据
 class ExtractSpecificData:
     @classmethod
@@ -1161,11 +1108,9 @@ class ExtractSpecificData:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "extract_specific_data"
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def extract_specific_data(self, input_text, rule1, rule2):
         if rule1.strip():
             return self.extract_by_rule1(input_text, rule1)
@@ -1248,11 +1193,9 @@ class FindFirstLineContent:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "find_first_line_content"
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def find_first_line_content(self, input_text, target_char):
         try:
             lines = input_text.splitlines()
@@ -1283,11 +1226,9 @@ class GetIntParam:
     RETURN_TYPES = ("INT", "STRING",)
     FUNCTION = "find_first_line_content"
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def find_first_line_content(self, input_text, target_char):
         try:
             lines = input_text.splitlines()
@@ -1324,11 +1265,9 @@ class GetFloatParam:
     RETURN_TYPES = ("FLOAT", "STRING",) 
     FUNCTION = "find_first_line_content"
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def find_first_line_content(self, input_text, target_char):
         try:
             lines = input_text.splitlines()
@@ -1350,7 +1289,6 @@ class GetFloatParam:
             return (None, f"Error: {str(e)}") 
 
 
-
 #======视频指令词模板
 class GenerateVideoPrompt:
     @classmethod
@@ -1366,11 +1304,9 @@ class GenerateVideoPrompt:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "generate_prompt"
     CATEGORY = "Meeeyo/String"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
-    
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
     def generate_prompt(self, input_text, mode):
         try:
             if mode == "原文本":
