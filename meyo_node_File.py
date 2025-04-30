@@ -1,5 +1,4 @@
-import os, re, io, base64, csv, torch
-import shutil, requests, chardet, pathlib
+import os, re, io, base64, csv, torch, shutil, requests, chardet, pathlib
 import openpyxl, folder_paths, node_helpers
 import numpy as np
 from PIL import Image, ImageOps, ImageSequence
@@ -7,8 +6,7 @@ from pathlib import Path
 from openpyxl.drawing.image import Image as OpenpyxlImage
 from PIL import Image as PILImage
 from io import BytesIO
-from . import AnyType, any_typ
-
+from . import any_typ, note
 
 
 
@@ -25,10 +23,8 @@ class GenericImageLoader:
     FUNCTION = "load_image"
     OUTPUT_NODE = False
     CATEGORY = "Meeeyo/File"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
 
     def load_image(self, image_input):
         path = image_input.strip()
@@ -92,10 +88,8 @@ class LoadAndAdjustImage:
     RETURN_NAMES = ("image", "mask", "info")
     FUNCTION = "load_image"
     CATEGORY = "Meeeyo/File"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
 
     def load_image(self, image, max_dimension, size_option):
         image_path = folder_paths.get_annotated_filepath(image)
@@ -192,24 +186,17 @@ class LoadAndAdjustImage:
         if not folder_paths.exists_annotated_filepath(image):
             return f"Invalid image file: {image}"
         return True
-
     def _resize_to_million_pixels(self, W, H):
-        # Calculate the aspect ratio of the original image
         aspect_ratio = W / H
         target_area = 1000000  # 1 million pixels
-        
-        # Calculate the new width and height while maintaining the aspect ratio
         if aspect_ratio > 1:  # Landscape
             width = int(np.sqrt(target_area * aspect_ratio))
             height = int(target_area / width)
         else:  # Portrait
             height = int(np.sqrt(target_area / aspect_ratio))
             width = int(target_area / height)
-
-        # Round width and height to the nearest multiple of 8
         width = (width + 7) // 8 * 8
         height = (height + 7) // 8 * 8
-        
         return width, height
 
 
@@ -234,10 +221,8 @@ class ImageAdjuster:
     RETURN_NAMES = ("image", "mask", "width", "height")
     FUNCTION = "process_image"
     CATEGORY = "Meeeyo/File"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED(self):
-        return float("NaN")
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
 
     def process_image(self, image, mask, max_dimension=1024, size_option="Custom"):
         batch_size = image.shape[0]
@@ -352,7 +337,6 @@ class ImageAdjuster:
         return width, height
 
 
-
 #======裁剪图像
 class CustomCrop:
     @classmethod
@@ -370,10 +354,8 @@ class CustomCrop:
     RETURN_NAMES = ("image", "mask", "width", "height")
     FUNCTION = "process_image"
     CATEGORY = "Meeeyo/File"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
 
     def process_image(self, image, mask, width=768, height=768):
         input_image = Image.fromarray((image.squeeze(0).numpy() * 255).astype(np.uint8))
@@ -434,10 +416,8 @@ class SaveImagEX:
     FUNCTION = "save_image"
     OUTPUT_NODE = True
     CATEGORY = "Meeeyo/File"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
 
     def save_image(self, image, save_path, image_name, image_format):
         if not isinstance(image, torch.Tensor):
@@ -455,7 +435,6 @@ class SaveImagEX:
         channel_to_mode = {1: "L", 3: "RGB", 4: "RGBA"}
 
         for i in range(batch_size):
-            # 根据选择的格式动态设置扩展名
             if image_format == "PNG":
                 filename = f"{base_name}.png" if batch_size == 1 else f"{base_name}_{i:05d}.png"
                 save_format = "PNG"
@@ -476,7 +455,6 @@ class SaveImagEX:
                 single_image = single_image[:, :, 0]
             pil_image = Image.fromarray(single_image, mode)
             
-            # 如果是JPG格式，需要转换为RGB模式
             if image_format == "JPG":
                 pil_image = pil_image.convert("RGB")
             
@@ -509,14 +487,11 @@ class FileCopyCutNode:
     def copy_cut_file(self, source_path, destination_path, operation, any=None):
         result = "执行失败"
         try:
-            # 检查文件是否存在
             if not os.path.isfile(source_path):
                 raise FileNotFoundError(f"源文件未找到: {source_path}")
-            
-            # 确保目标目录存在
+
             os.makedirs(os.path.dirname(destination_path), exist_ok=True)
 
-            # 执行复制或剪切操作
             if operation == "copy":
                 shutil.copy2(source_path, destination_path)
                 result = "执行成功: 文件已复制"
@@ -535,8 +510,6 @@ class FileCopyCutNode:
         return (result,)
 
 
-
-
 #======替换文件名
 class FileNameReplacer:
     @classmethod
@@ -552,26 +525,16 @@ class FileNameReplacer:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "replace_file_name"
     CATEGORY = "Meeeyo/File"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
 
     def replace_file_name(self, file_path, new_file_name, any=None):
-        # 获取目录和原始文件名与扩展名
         dir_name = os.path.dirname(file_path)
         _, file_ext = os.path.splitext(file_path)
-
-        # 替换非法字符
         new_file_name = self.sanitize_file_name(new_file_name)
-
-        # 构造新的文件路径
         new_file_path = os.path.join(dir_name, new_file_name + file_ext)
-
         return (new_file_path,)
-
     def sanitize_file_name(self, file_name):
-        # 替换不能作为文件名的字符为"_"
         invalid_chars = r'[\/:*?"<>|]'
         return re.sub(invalid_chars, '_', file_name)
 
@@ -591,10 +554,8 @@ class WriteToTxtFile:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "write_to_txt"
     CATEGORY = "Meeeyo/File"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
 
     def write_to_txt(self, text_content, file_path, any=None):
         try:
@@ -624,31 +585,22 @@ class FileDeleteNode:
     RETURN_NAMES = ("result",)
     FUNCTION = "delete_files"
     CATEGORY = "Meeeyo/File"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
 
     def delete_files(self, items_to_delete, any=None):
 
         result = "执行成功: 所有指定项已从output目录删除"
         error_messages = []
-
-        # 确保只操作COMFYUI_OUTPUT_DIR目录下的内容
         base_output_dir = Path.cwd() / COMFYUI_OUTPUT_DIR
-
-        # 处理多行文本输入
         items = items_to_delete.strip().split('\n')
 
         for item in items:
             item = item.strip()
             if not item:
                 continue
-            
-            # 检查是否有特殊命令[DeleteAll]
             if item == "[DeleteAll]":
                 try:
-                    # 删除output目录下所有内容
                     for file_or_dir in base_output_dir.glob('*'):
                         if file_or_dir.is_file() or file_or_dir.is_symlink():
                             file_or_dir.unlink()
@@ -658,23 +610,15 @@ class FileDeleteNode:
                 except Exception as e:
                     error_messages.append(f"从output目录删除全部失败: {str(e)}")
                     continue
-            
-            # 构建完整路径
             target_path = base_output_dir / item
-            
-            # 检查是否位于output目录下
             try:
                 target_path.relative_to(base_output_dir)
             except ValueError:
                 error_messages.append(f"{item} 不在output目录范围内，无法删除")
                 continue
-            
-            # 检查文件/目录是否存在
             if not target_path.exists():
                 error_messages.append(f"在output目录下找不到 {item}")
                 continue
-            
-            # 删除操作
             try:
                 if target_path.is_file() or target_path.is_symlink():
                     target_path.unlink()
@@ -682,8 +626,6 @@ class FileDeleteNode:
                     shutil.rmtree(target_path)
             except Exception as e:
                 error_messages.append(f"从output目录删除 {item} 失败: {str(e)}")
-        
-        # 汇总结果
         if error_messages:
             result = "部分执行失败:\n" + "\n".join(error_messages)
         return (result,)
@@ -704,10 +646,8 @@ class FileListAndSuffix:
     RETURN_TYPES = ("STRING", "INT", "LIST")
     FUNCTION = "file_list_and_suffix"
     CATEGORY = "Meeeyo/File"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
 
     def file_list_and_suffix(self, folder_path, file_extension, any=None):
         try:
@@ -743,10 +683,8 @@ class ReadExcelData:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "read_excel_data"
     CATEGORY = "Meeeyo/File"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
 
     def read_excel_data(self, excel_path, sheet_name, row_range, col_range, any=None):
         try:
@@ -801,10 +739,8 @@ class WriteExcelData:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "write_excel_data"
     CATEGORY = "Meeeyo/File"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
 
     def write_excel_data(self, excel_path, sheet_name, row_range, col_range, data, any=None):
         try:
@@ -875,10 +811,8 @@ class WriteExcelImage:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "write_image"
     CATEGORY = "Meeeyo/File"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
 
     def write_image(self, excel_path, sheet_name, row_range, col_range, image_path, any=None):
         try:
@@ -920,7 +854,6 @@ class WriteExcelImage:
             return (f"Error: {str(e)}",)
 
 
-
 #======查找表格数据
 class FindExcelData:
     @classmethod
@@ -938,10 +871,8 @@ class FindExcelData:
     RETURN_TYPES = ("STRING", "INT", "INT")
     FUNCTION = "find_excel_data"
     CATEGORY = "Meeeyo/File"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
 
     def find_excel_data(self, excel_path, sheet_name, search_content, search_mode, any=None):
         try:
@@ -975,7 +906,6 @@ class FindExcelData:
             return (f"Error: {str(e)}", None, None)
 
 
-
 #======读取表格数量差
 class ReadExcelRowOrColumnDiff:
     @classmethod
@@ -993,10 +923,8 @@ class ReadExcelRowOrColumnDiff:
     RETURN_TYPES = ("INT",)
     FUNCTION = "read_excel_row_or_column_diff"
     CATEGORY = "Meeeyo/File"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
 
     def read_excel_row_or_column_diff(self, excel_path, sheet_name, read_mode, indices, any=None):
         try:
