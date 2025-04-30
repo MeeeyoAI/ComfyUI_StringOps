@@ -54,3 +54,5 @@ Or download the zip file and extracted, copy the resulting folder to ```ComfyUI\
 ✅ `Sponsorship:` https://t.zsxq.com/ufSS2
 
 ✅ `WeChat`: meeeyo
+
+![image](image/v.jpg)   
