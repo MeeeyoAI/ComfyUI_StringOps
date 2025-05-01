@@ -479,10 +479,8 @@ class FileCopyCutNode:
     RETURN_NAMES = ("result",)
     FUNCTION = "copy_cut_file"
     CATEGORY = "Meeeyo/File"
-    DESCRIPTION = "如需更多帮助或商务需求(For tech and business support)+VX/WeChat: meeeyo"
-    
-    def IS_CHANGED():
-        return float("NaN")
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
 
     def copy_cut_file(self, source_path, destination_path, operation, any=None):
         result = "执行失败"
@@ -589,7 +587,6 @@ class FileDeleteNode:
     def IS_CHANGED(): return float("NaN")
 
     def delete_files(self, items_to_delete, any=None):
-
         result = "执行成功: 所有指定项已从output目录删除"
         error_messages = []
         base_output_dir = Path.cwd() / COMFYUI_OUTPUT_DIR
