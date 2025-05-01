@@ -59,10 +59,10 @@ class TextConcatenator:
     def INPUT_TYPES(cls):
         return {
             "optional": {
-                "text1": ("STRING", {"multiline": False, "default": "", "forceInput": True}),  
-                "text2": ("STRING", {"multiline": False, "default": "", "forceInput": True}),  
-                "text3": ("STRING", {"multiline": False, "default": "", "forceInput": True}),  
-                "text4": ("STRING", {"multiline": False, "default": "", "forceInput": True}),  
+                "text1": ("STRING", {"multiline": False, "default": ""}),
+                "text2": ("STRING", {"multiline": False, "default": ""}),
+                "text3": ("STRING", {"multiline": False, "default": ""}),
+                "text4": ("STRING", {"multiline": False, "default": ""}),
                 "combine_order": ("STRING", {"default": ""}),
                 "separator": ("STRING", {"default": ","})
             },
