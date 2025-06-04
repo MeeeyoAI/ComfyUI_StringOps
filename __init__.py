@@ -67,6 +67,9 @@ NODE_CLASS_MAPPINGS = {
     "WriteToTxtFile": WriteToTxtFile,   
     "FileDeleteNode": FileDeleteNode,   
     "FileListAndSuffix": FileListAndSuffix,
+    "ImageOverlayAlignment": ImageOverlayAlignment,
+    "TextToImage": TextToImage,
+
     "ReadExcelData": ReadExcelData,
     "WriteExcelData": WriteExcelData,
     "WriteExcelImage": WriteExcelImage,
@@ -138,6 +141,9 @@ NODE_DISPLAY_NAME_MAPPINGS = {
    "WriteToTxtFile": "文本写入TXT🐠meeeyo.com",
    "FileDeleteNode": "清理文件🐠meeeyo.com",
    "FileListAndSuffix": "从路径加载🐠meeeyo.com",
+   "ImageOverlayAlignment": "图像层叠加🐠meeeyo.com",
+   "TextToImage": "文字图像🐠meeeyo.com",
+
    "ReadExcelData": "读取表格数据🐠meeeyo.com",
    "WriteExcelData": "写入表格数据🐠meeeyo.com",
    "WriteExcelImage": "图片插入表格🐠meeeyo.com",

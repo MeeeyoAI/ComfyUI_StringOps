@@ -735,60 +735,105 @@ class TextToImage:
         background_opacity = 0.9
 
         try:
-            props = font_properties.split(',')
-            if len(props) >= 5:
-                font_color = props[0].strip()
-                letter_spacing_factor = float(props[1]) if props[1] else 1.0
-                line_spacing_factor = float(props[2]) if props[2] else 1.0
-                alignment = props[3].strip().upper()
-                opacity = float(props[4]) if props[4] else 1.0
-        except Exception as e:
-            pass
+            if font_properties.strip() == "":
+                font_color = "#FFFFFF"
+                letter_spacing_factor = 1.0
+                line_spacing_factor = 1.0
+                alignment = "C"
+                opacity = 1.0
+            else:
+                props = font_properties.split(',')
+                if len(props) >= 5:
+                    font_color = props[0].strip()
+                    letter_spacing_factor = float(props[1]) if props[1] else 1.0
+                    line_spacing_factor = float(props[2]) if props[2] else 1.0
+                    alignment = props[3].strip().upper()
+                    opacity = float(props[4]) if props[4] else 1.0
+                else:
+                    font_color = "#FFFFFF"
+                    letter_spacing_factor = 1.0
+                    line_spacing_factor = 1.0
+                    alignment = "C"
+                    opacity = 1.0
+        except:
+            font_color = "#FFFFFF"
+            letter_spacing_factor = 1.0
+            line_spacing_factor = 1.0
+            alignment = "C"
+            opacity = 1.0
 
         try:
-            stroke_props = font_stroke.split(',')
-            if len(stroke_props) >= 3:
-                stroke_color = stroke_props[0].strip()
-                stroke_width = float(stroke_props[1]) if stroke_props[1] else 1.0
-                stroke_opacity = float(stroke_props[2]) if stroke_props[2] else 1.0
-        except Exception as e:
-            pass
+            if font_stroke.strip() == "":
+                stroke_width = 0.0
+            else:
+                stroke_props = font_stroke.split(',')
+                if len(stroke_props) >= 3:
+                    stroke_color = stroke_props[0].strip()
+                    stroke_width = float(stroke_props[1]) if stroke_props[1] else 1.0
+                    stroke_opacity = float(stroke_props[2]) if stroke_props[2] else 1.0
+                else:
+                    stroke_width = 0.0
+        except:
+            stroke_width = 0.0
 
         try:
-            bg_props = font_background.split(',')
-            if len(bg_props) >= 4:
-                background_color = bg_props[0].strip()
-                expand_width = int(bg_props[1]) if bg_props[1] else 5
-                corner_radius = int(bg_props[2]) if bg_props[2] else 10
-                background_opacity = float(bg_props[3]) if bg_props[3] else 0.9
-        except Exception as e:
-            pass
+            if font_background.strip() == "":
+                background_color = None
+            else:
+                bg_props = font_background.split(',')
+                if len(bg_props) >= 4:
+                    background_color = bg_props[0].strip()
+                    expand_width = int(bg_props[1]) if bg_props[1] else 5
+                    corner_radius = int(bg_props[2]) if bg_props[2] else 10
+                    background_opacity = float(bg_props[3]) if bg_props[3] else 0.9
+                else:
+                    background_color = None
+        except:
+            background_color = None
+
+        actual_max_width = 0
+        for line in lines:
+            line_width = 0
+            for char in line:
+                char_width = draw.textbbox((0, 0), char, font=font)[2]
+                line_width += char_width + (font.size * (letter_spacing_factor - 1))
+            actual_max_width = max(actual_max_width, line_width)
+
+        if actual_max_width > max_width:
+            ratio = max_width / actual_max_width
+            new_font_size = int(new_font_size * ratio)
+            font = ImageFont.truetype(font_path, new_font_size)
 
         font_ascent, font_descent = font.getmetrics()
         line_height = font_ascent + font_descent
-        text_height = line_height * len(lines) * line_spacing_factor
+
+        if len(lines) > 1:
+            text_height = line_height * (len(lines) - 1) * line_spacing_factor + line_height
+        else:
+            text_height = line_height
 
         image_width = max_width
-        image_height = int(text_height + new_font_size * 0.5)
+        image_height = int(text_height + new_font_size * 0.2)
         image = Image.new('RGBA', (image_width, image_height), (0, 0, 0, 0))
         draw = ImageDraw.Draw(image)
 
-        try:
-            background_color_tuple = (
-                int(background_color[1:3], 16),
-                int(background_color[3:5], 16),
-                int(background_color[5:7], 16),
-                int(background_opacity * 255)
-            )
-            draw.rounded_rectangle(
-                [0, 0, image_width, image_height],
-                fill=background_color_tuple,
-                radius=corner_radius
-            )
-        except Exception as e:
-            pass
+        if background_color is not None:
+            try:
+                background_color_tuple = (
+                    int(background_color[1:3], 16),
+                    int(background_color[3:5], 16),
+                    int(background_color[5:7], 16),
+                    int(background_opacity * 255)
+                )
+                draw.rounded_rectangle(
+                    [0, 0, image_width, image_height],
+                    fill=background_color_tuple,
+                    radius=corner_radius
+                )
+            except:
+                pass
 
-        y_text = new_font_size * 0.2
+        y_text = new_font_size * 0.1
         try:
             font_color_tuple = (
                 int(font_color[1:3], 16),
@@ -802,7 +847,7 @@ class TextToImage:
                 int(stroke_color[5:7], 16),
                 int(stroke_opacity * 255)
             )
-        except Exception as e:
+        except:
             font_color_tuple = (255, 255, 255, 255)
             stroke_color_tuple = (0, 0, 0, 255)
 
@@ -838,7 +883,10 @@ class TextToImage:
                 draw.text((char_x, y_text), char, font=font, fill=font_color_tuple)
                 char_x += char_width + (font.size * (letter_spacing_factor - 1))
 
-            y_text += line_height * line_spacing_factor
+            if i < len(lines) - 1:
+                y_text += line_height * line_spacing_factor
+            else:
+                y_text += line_height
 
         image_data = np.array(image)
         alpha_channel = image_data[:, :, 3]
@@ -846,14 +894,26 @@ class TextToImage:
         if len(non_zero_indices[0]) > 0:
             min_y = np.min(non_zero_indices[0])
             max_y = np.max(non_zero_indices[0])
-            image = image.crop((0, min_y, max_width, max_y + 1))
+            min_x = np.min(non_zero_indices[1])
+            max_x = np.max(non_zero_indices[1])
+            image = image.crop((min_x, min_y, max_x + 1, max_y + 1))
         else:
             pass
 
-        image_height = image.size[1]
-        if image_height < 1:
-            image_height = 1
-            image = image.resize((max_width, image_height))
+        text_content_width = max_x - min_x + 1 if len(non_zero_indices[0]) > 0 else max_width
+
+        image_width, image_height = image.size
+        if text_content_width < max_width:
+            new_image = Image.new('RGBA', (max_width, image_height), (0, 0, 0, 0))
+            new_draw = ImageDraw.Draw(new_image)
+            x_offset = (max_width - text_content_width) // 2
+            new_image.paste(image, (x_offset, 0))
+            image = new_image
+
+        image_width, image_height = image.size
+        if image_width > max_width:
+            height_ratio = image_height / image_width
+            image = image.resize((max_width, int(max_width * height_ratio)))
 
         image_np = np.array(image).astype(np.float32) / 255.0
         image_tensor = torch.from_numpy(image_np).unsqueeze(0)
@@ -878,7 +938,9 @@ class ImageOverlayAlignment:
 
     RETURN_TYPES = ("IMAGE",)
     FUNCTION = "overlay_images"
-    CATEGORY = "image"
+    CATEGORY = "Meeeyo/File"
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
 
     def overlay_images(self, image1, image2, alignment, offset, scale, opacity):
         image1_np = image1.cpu().numpy().squeeze()
