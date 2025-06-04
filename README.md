@@ -26,7 +26,7 @@ Achieves deep integration with Excel, supporting read and write operations on pa
 
 5.Added the feature of reading web page content.
 
-5.Added text layout to image node, image layer overlay node.
+6.Added text layout to image node, image layer overlay node.
 
 ## Partial Node Display
 **Text Processing Node**
