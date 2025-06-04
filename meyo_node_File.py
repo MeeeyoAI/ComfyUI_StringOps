@@ -1,7 +1,7 @@
 import os, re, io, base64, csv, torch, shutil, requests, chardet, pathlib
 import openpyxl, folder_paths, node_helpers
 import numpy as np
-from PIL import Image, ImageOps, ImageSequence
+from PIL import Image, ImageOps, ImageSequence, ImageDraw, ImageFont
 from pathlib import Path
 from openpyxl.drawing.image import Image as OpenpyxlImage
 from PIL import Image as PILImage
@@ -557,11 +557,15 @@ class WriteToTxtFile:
 
     def write_to_txt(self, text_content, file_path, any=None):
         try:
+            dir_path = os.path.dirname(file_path)
+            if not os.path.exists(dir_path):
+                os.makedirs(dir_path)
             file_exists = os.path.exists(file_path)
             mode = 'a' if file_exists else 'w'
+            
             with open(file_path, mode, encoding='utf-8') as f:
                 if file_exists:
-                    f.write('\n\n')  # 如果文件存在，写入两个换行符
+                    f.write('\n\n') 
                 f.write(text_content)
             return ("Write successful: " + text_content,)
         except Exception as e:
@@ -661,6 +665,306 @@ class FileListAndSuffix:
             return ('\n'.join(file_paths), len(file_paths), file_paths)
         except Exception as e:
             return ("", 0, [])
+
+
+#======文字图像
+class TextToImage:
+    @classmethod
+    def INPUT_TYPES(cls):
+        fonts_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "fonts")
+        if not os.path.exists(fonts_dir):
+            os.makedirs(fonts_dir)
+            font_files = []
+        else:
+            font_files = [file for file in os.listdir(fonts_dir) if file.lower().endswith(('.ttf', '.otf'))]
+        font_files = font_files or ["arial.ttf"]
+        return {
+            "required": {
+                "text": ("STRING", {"default": "Hello, World!", "multiline": True}),
+                "font": (font_files, ),
+                "max_width": ("INT", {"default": 300, "min": 1, "max": 2048, "step": 1}),
+                "font_properties": ("STRING", {"default": "#FFFFFF,1,1,C,1", "multiline": False}),
+                "font_stroke": ("STRING", {"default": "#000000,2,1", "multiline": False}),
+                "font_background": ("STRING", {"default": "#333333,5,10,1", "multiline": False})
+            },
+            "optional": {"any": (any_typ,)} 
+        }
+    RETURN_TYPES = ("IMAGE",)
+    FUNCTION = "generate_text_image"
+    CATEGORY = "Meeeyo/File"
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
+    def generate_text_image(self, text, font, max_width, font_properties, font_stroke, font_background):
+        fonts_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "fonts")
+        font_path = os.path.join(fonts_dir, font)
+        try:
+            font = ImageFont.truetype(font_path, 1)
+        except Exception as e:
+            return None
+
+        draw = ImageDraw.Draw(Image.new('RGBA', (1, 1)))
+        lines = text.split("\n")
+        max_text_width = 0
+        text_height = 0
+        for line in lines:
+            left, top, right, bottom = draw.textbbox((0, 0), line, font=font)
+            line_width = right - left
+            line_height = bottom - top
+            max_text_width = max(max_text_width, line_width)
+            text_height += line_height
+
+        if max_text_width == 0:
+            max_text_width = 1
+
+        ratio = max_width / max_text_width
+        new_font_size = int(1 * ratio)
+        font = ImageFont.truetype(font_path, new_font_size)
+
+        font_color = "#FFFFFF"
+        letter_spacing_factor = 1.0
+        line_spacing_factor = 1.0
+        alignment = "C"
+        opacity = 1.0
+        stroke_color = "#000000"
+        stroke_width = 0.0
+        stroke_opacity = 1.0
+        background_color = "#333333"
+        expand_width = 5
+        corner_radius = 10
+        background_opacity = 0.9
+
+        try:
+            props = font_properties.split(',')
+            if len(props) >= 5:
+                font_color = props[0].strip()
+                letter_spacing_factor = float(props[1]) if props[1] else 1.0
+                line_spacing_factor = float(props[2]) if props[2] else 1.0
+                alignment = props[3].strip().upper()
+                opacity = float(props[4]) if props[4] else 1.0
+        except Exception as e:
+            pass
+
+        try:
+            stroke_props = font_stroke.split(',')
+            if len(stroke_props) >= 3:
+                stroke_color = stroke_props[0].strip()
+                stroke_width = float(stroke_props[1]) if stroke_props[1] else 1.0
+                stroke_opacity = float(stroke_props[2]) if stroke_props[2] else 1.0
+        except Exception as e:
+            pass
+
+        try:
+            bg_props = font_background.split(',')
+            if len(bg_props) >= 4:
+                background_color = bg_props[0].strip()
+                expand_width = int(bg_props[1]) if bg_props[1] else 5
+                corner_radius = int(bg_props[2]) if bg_props[2] else 10
+                background_opacity = float(bg_props[3]) if bg_props[3] else 0.9
+        except Exception as e:
+            pass
+
+        font_ascent, font_descent = font.getmetrics()
+        line_height = font_ascent + font_descent
+        text_height = line_height * len(lines) * line_spacing_factor
+
+        image_width = max_width
+        image_height = int(text_height + new_font_size * 0.5)
+        image = Image.new('RGBA', (image_width, image_height), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(image)
+
+        try:
+            background_color_tuple = (
+                int(background_color[1:3], 16),
+                int(background_color[3:5], 16),
+                int(background_color[5:7], 16),
+                int(background_opacity * 255)
+            )
+            draw.rounded_rectangle(
+                [0, 0, image_width, image_height],
+                fill=background_color_tuple,
+                radius=corner_radius
+            )
+        except Exception as e:
+            pass
+
+        y_text = new_font_size * 0.2
+        try:
+            font_color_tuple = (
+                int(font_color[1:3], 16),
+                int(font_color[3:5], 16),
+                int(font_color[5:7], 16),
+                int(opacity * 255)
+            )
+            stroke_color_tuple = (
+                int(stroke_color[1:3], 16),
+                int(stroke_color[3:5], 16),
+                int(stroke_color[5:7], 16),
+                int(stroke_opacity * 255)
+            )
+        except Exception as e:
+            font_color_tuple = (255, 255, 255, 255)
+            stroke_color_tuple = (0, 0, 0, 255)
+
+        for i, line in enumerate(lines):
+            line_width = 0
+            for char in line:
+                char_width = draw.textbbox((0, 0), char, font=font)[2]
+                line_width += char_width + (font.size * (letter_spacing_factor - 1))
+            line_width = max(line_width, 1)
+
+            if alignment == "L":
+                x = 0
+            elif alignment == "R":
+                x = max_width - line_width
+            else:
+                x = (max_width - line_width) / 2
+
+            if stroke_width > 0:
+                for sx in range(-int(stroke_width), int(stroke_width) + 1):
+                    for sy in range(-int(stroke_width), int(stroke_width) + 1):
+                        if sx == 0 and sy == 0:
+                            continue
+                        char_x = x + sx
+                        char_y = y_text + sy
+                        for char in line:
+                            char_width = draw.textbbox((0, 0), char, font=font)[2]
+                            draw.text((char_x, char_y), char, font=font, fill=stroke_color_tuple)
+                            char_x += char_width + (font.size * (letter_spacing_factor - 1))
+
+            char_x = x
+            for char in line:
+                char_width = draw.textbbox((0, 0), char, font=font)[2]
+                draw.text((char_x, y_text), char, font=font, fill=font_color_tuple)
+                char_x += char_width + (font.size * (letter_spacing_factor - 1))
+
+            y_text += line_height * line_spacing_factor
+
+        image_data = np.array(image)
+        alpha_channel = image_data[:, :, 3]
+        non_zero_indices = np.where(alpha_channel > 0)
+        if len(non_zero_indices[0]) > 0:
+            min_y = np.min(non_zero_indices[0])
+            max_y = np.max(non_zero_indices[0])
+            image = image.crop((0, min_y, max_width, max_y + 1))
+        else:
+            pass
+
+        image_height = image.size[1]
+        if image_height < 1:
+            image_height = 1
+            image = image.resize((max_width, image_height))
+
+        image_np = np.array(image).astype(np.float32) / 255.0
+        image_tensor = torch.from_numpy(image_np).unsqueeze(0)
+
+        return (image_tensor,)
+
+
+#======图像层叠加
+class ImageOverlayAlignment:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "image1": ("IMAGE", {"forceInput": True}),
+                "image2": ("IMAGE", {"forceInput": True}),
+                "alignment": (["top_left", "top_center", "top_right", "bottom_left", "bottom_center", "bottom_right", "center"], ),
+                "scale": ("FLOAT", {"default": 1.0, "min": 0.1, "max": 10.0, "step": 0.1}),
+                "opacity": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step": 0.1}),
+                "offset": ("STRING", {"default": "0,0,0,0", "multiline": False})
+            }
+        }
+
+    RETURN_TYPES = ("IMAGE",)
+    FUNCTION = "overlay_images"
+    CATEGORY = "image"
+
+    def overlay_images(self, image1, image2, alignment, offset, scale, opacity):
+        image1_np = image1.cpu().numpy().squeeze()
+        image2_np = image2.cpu().numpy().squeeze()
+        img1 = Image.fromarray((image1_np * 255).astype(np.uint8)).convert('RGBA')
+        img2 = Image.fromarray((image2_np * 255).astype(np.uint8)).convert('RGBA')
+        img1_width, img1_height = img1.size
+        new_width = int(img1_width * scale)
+        new_height = int(img1_height * scale)
+        img1 = img1.resize((new_width, new_height), Image.LANCZOS)
+        img1 = self.adjust_opacity(img1, opacity)
+        img1_width, img1_height = img1.size
+        img2_width, img2_height = img2.size
+        max_width = max(img1_width, img2_width)
+        max_height = max(img1_height, img2_height)
+        canvas = Image.new('RGBA', (max_width, max_height), (0, 0, 0, 0))
+        if alignment == "top_left":
+            img2_x, img2_y = 0, 0
+        elif alignment == "top_center":
+            img2_x = (max_width - img2_width) // 2
+            img2_y = 0
+        elif alignment == "top_right":
+            img2_x = max_width - img2_width
+            img2_y = 0
+        elif alignment == "bottom_left":
+            img2_x = 0
+            img2_y = max_height - img2_height
+        elif alignment == "bottom_center":
+            img2_x = (max_width - img2_width) // 2
+            img2_y = max_height - img2_height
+        elif alignment == "bottom_right":
+            img2_x = max_width - img2_width
+            img2_y = max_height - img2_height
+        elif alignment == "center":
+            img2_x = (max_width - img2_width) // 2
+            img2_y = (max_height - img2_height) // 2
+
+        right_offset, left_offset, down_offset, up_offset = 0, 0, 0, 0
+        offset_list = offset.split(',')
+        if len(offset_list) >= 4:
+            try:
+                right_offset = int(offset_list[0]) if offset_list[0] else 0
+                left_offset = int(offset_list[1]) if offset_list[1] else 0
+                down_offset = int(offset_list[2]) if offset_list[2] else 0
+                up_offset = int(offset_list[3]) if offset_list[3] else 0
+            except ValueError:
+                pass
+        if alignment == "top_left":
+            img1_x, img1_y = 0, 0
+        elif alignment == "top_center":
+            img1_x = (max_width - img1_width) // 2
+            img1_y = 0
+        elif alignment == "top_right":
+            img1_x = max_width - img1_width
+            img1_y = 0
+        elif alignment == "bottom_left":
+            img1_x = 0
+            img1_y = max_height - img1_height
+        elif alignment == "bottom_center":
+            img1_x = (max_width - img1_width) // 2
+            img1_y = max_height - img1_height
+        elif alignment == "bottom_right":
+            img1_x = max_width - img1_width
+            img1_y = max_height - img1_height
+        elif alignment == "center":
+            img1_x = (max_width - img1_width) // 2
+            img1_y = (max_height - img1_height) // 2
+        img1_x += right_offset - left_offset
+        img1_y += down_offset - up_offset
+        img1_x = max(0, min(img1_x, max_width - img1_width))
+        img1_y = max(0, min(img1_y, max_height - img1_height))
+        img2_x = max(0, min(img2_x, max_width - img2_width))
+        img2_y = max(0, min(img2_y, max_height - img2_height))
+        canvas.paste(img2, (img2_x, img2_y), img2.split()[-1])
+        canvas.paste(img1, (img1_x, img1_y), img1.split()[-1])
+        output_image = np.array(canvas).astype(np.float32) / 255.0
+        output_tensor = torch.from_numpy(output_image).unsqueeze(0)
+        return (output_tensor,)
+
+    def adjust_opacity(self, img, opacity):
+        if opacity < 1.0:
+            img = img.copy() 
+            alpha = np.array(img.split()[-1]) * opacity
+            alpha = alpha.astype(np.uint8)
+            img.putalpha(Image.fromarray(alpha))
+        return img
 
 
 #======读取表格数据
@@ -977,3 +1281,5 @@ class ReadExcelRowOrColumnDiff:
 
         except Exception as e:
             return (f"Error: {str(e)}",)
+
+

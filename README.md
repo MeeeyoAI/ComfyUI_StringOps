@@ -15,7 +15,7 @@ Accurately extracts specified content from text using positional indexing and ke
  - **Integration with Excel：**
 Achieves deep integration with Excel, supporting read and write operations on paged and tabular data, facilitating batch completion of complex tasks and significantly improving efficiency.
 
-## Update Notes (2025-04-21):
+## Update Notes (2025-06-05):
 1.Added LoadAndAdjustImage node to load and resize images.
 
 2.Added SaveImagEX node to save images to a specified directory (also added an image output port).
@@ -25,6 +25,8 @@ Achieves deep integration with Excel, supporting read and write operations on pa
 4.Added the ability to copy and cut files.
 
 5.Added the feature of reading web page content.
+
+5.Added text layout to image node, image layer overlay node.
 
 ## Partial Node Display
 **Text Processing Node**
