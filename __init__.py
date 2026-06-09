@@ -76,6 +76,9 @@ NODE_CLASS_MAPPINGS = {
     "FindExcelData": FindExcelData,
     "ReadExcelRowOrColumnDiff": ReadExcelRowOrColumnDiff,
 
+    "CsvReadRow": CsvReadRow,
+    "CsvGetValue": CsvGetValue,
+
     #功能型节点：meyo_node_Functional
     "GetCurrentTime": GetCurrentTime,
     "SimpleRandomSeed": SimpleRandomSeed,
@@ -149,7 +152,10 @@ NODE_DISPLAY_NAME_MAPPINGS = {
    "WriteExcelImage": "图片插入表格🐠meeeyo.com",
    "FindExcelData": "查找表格数据🐠meeeyo.com",
    "ReadExcelRowOrColumnDiff": "读取表格数量差🐠meeeyo.com",
-   
+
+   "CsvReadRow": "读取CSV行数据🐠meeeyo.com",
+   "CsvGetValue": "按列名取CSV值🐠meeeyo.com",
+
     #功能型节点：meyo_node_Functional
    "GetCurrentTime": "当前时间(戳)🐠meeeyo.com",
    "SimpleRandomSeed": "随机整数🐠meeeyo.com", 

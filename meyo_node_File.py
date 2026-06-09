@@ -1345,3 +1345,110 @@ class ReadExcelRowOrColumnDiff:
             return (f"Error: {str(e)}",)
 
 
+#======读取CSV行数据
+class CsvReadRow:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "csv_path": ("STRING", {"default": "path/to/your/file.csv"}),
+                "row_index": ("INT", {"default": 1, "min": 1, "max": 99999, "step": 1}),
+            },
+            "optional": {"any": (any_typ,)}
+        }
+
+    RETURN_TYPES = ("STRING", "STRING", "STRING", "INT")
+    RETURN_NAMES = ("json_data", "row_data", "headers", "total_rows")
+    FUNCTION = "read_csv_row"
+    CATEGORY = "Meeeyo/File"
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
+    def read_csv_row(self, csv_path, row_index, any=None):
+        import json
+        try:
+            if not os.path.exists(csv_path):
+                return (f"Error: File not found: {csv_path}", "", "", 0)
+
+            encoding = self._detect_encoding(csv_path)
+            with open(csv_path, newline='', encoding=encoding) as f:
+                reader = csv.DictReader(f)
+                headers = reader.fieldnames or []
+                rows = list(reader)
+
+            total_rows = len(rows)
+            if total_rows == 0:
+                return ("Error: CSV has no data rows", "|".join(headers), "", 0)
+
+            idx = max(1, min(row_index, total_rows))
+            row = rows[idx - 1]
+
+            json_data = json.dumps(dict(row), ensure_ascii=False)
+            row_data = "|".join(str(row.get(h, "")) for h in headers)
+            headers_str = "|".join(headers)
+
+            return (json_data, row_data, headers_str, total_rows)
+
+        except Exception as e:
+            return (f"Error: {str(e)}", "", "", 0)
+
+    def _detect_encoding(self, path):
+        with open(path, 'rb') as f:
+            raw = f.read(4096)
+        result = chardet.detect(raw)
+        return result.get('encoding') or 'utf-8'
+
+
+#======按列名取CSV值
+class CsvGetValue:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "csv_path": ("STRING", {"default": "path/to/your/file.csv"}),
+                "row_index": ("INT", {"default": 1, "min": 1, "max": 99999, "step": 1}),
+                "column_name": ("STRING", {"default": "列名"}),
+            },
+            "optional": {"any": (any_typ,)}
+        }
+
+    RETURN_TYPES = ("STRING", "INT")
+    RETURN_NAMES = ("value", "total_rows")
+    FUNCTION = "get_csv_value"
+    CATEGORY = "Meeeyo/File"
+    DESCRIPTION = note
+    def IS_CHANGED(): return float("NaN")
+
+    def get_csv_value(self, csv_path, row_index, column_name, any=None):
+        try:
+            if not os.path.exists(csv_path):
+                return (f"Error: File not found: {csv_path}", 0)
+
+            encoding = self._detect_encoding(csv_path)
+            with open(csv_path, newline='', encoding=encoding) as f:
+                reader = csv.DictReader(f)
+                rows = list(reader)
+
+            total_rows = len(rows)
+            if total_rows == 0:
+                return ("Error: CSV has no data rows", 0)
+
+            idx = max(1, min(row_index, total_rows))
+            row = rows[idx - 1]
+
+            if column_name not in row:
+                available = ", ".join(row.keys())
+                return (f"Error: Column '{column_name}' not found. Available: {available}", total_rows)
+
+            return (str(row[column_name]), total_rows)
+
+        except Exception as e:
+            return (f"Error: {str(e)}", 0)
+
+    def _detect_encoding(self, path):
+        with open(path, 'rb') as f:
+            raw = f.read(4096)
+        result = chardet.detect(raw)
+        return result.get('encoding') or 'utf-8'
+
+
