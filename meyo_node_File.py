@@ -444,7 +444,11 @@ class SaveImagEX:
                 save_format = "JPEG"
                 save_params = {"quality": 100}
             
-            full_path = os.path.join(save_path, filename)
+            out_dir = Path(save_path)
+            out_dir.mkdir(parents=True, exist_ok=True)
+            full_path = out_dir / filename
+            # 新增：确保full_path所在的父目录存在（会自动创建img这类子层级）filename = "img/_g_0_i"
+            full_path.parent.mkdir(parents=True, exist_ok=True)
             single_image = image[i].cpu().numpy()
             single_image = (single_image * 255).astype('uint8')
             channels = single_image.shape[2]
@@ -458,7 +462,7 @@ class SaveImagEX:
             if image_format == "JPG":
                 pil_image = pil_image.convert("RGB")
             
-            pil_image.save(full_path, format=save_format, **save_params)
+            pil_image.save(str(full_path.absolute()), format=save_format, **save_params)
         return (image,)
 
 
